@@ -27,7 +27,7 @@ export function Dashboard() {
   const [selectedReport, setSelectedReport] = useState(0)
 
   return (
-    <main className="relative isolate h-dvh min-h-[600px] overflow-hidden bg-background" onClick={() => setAccountOpen(false)}>
+    <main className="relative isolate h-dvh min-h-150 overflow-hidden bg-background" onClick={() => setAccountOpen(false)}>
       <MapView selectedReport={selectedReport} onSelectReport={setSelectedReport} />
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3 md:p-5">
@@ -44,7 +44,6 @@ export function Dashboard() {
             <Search className="size-4 text-muted-foreground" aria-hidden="true" />
             <span className="sr-only">Buscar sector o dirección</span>
             <input className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder="Buscar sector o dirección" />
-            <kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">⌘ K</kbd>
           </label>
         </div>
 
