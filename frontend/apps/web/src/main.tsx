@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import { CivicDashboard } from "@/components/civic-dashboard";
+import { Dashboard } from "@/pages/Dashboard";
 
-createRoot(document.getElementById("app")!).render(<CivicDashboard />);
+createRoot(document.getElementById("app")!).render(<Dashboard />);
