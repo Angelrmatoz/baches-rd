@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Eye,
   EyeOff,
@@ -13,17 +13,32 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+/** Credenciales mock (hardcode) hasta conectar backend */
+const MOCK_EMAIL = 'admin@correo.com'
+const MOCK_PASSWORD = '1234'
+
 export function Login() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(true)
-  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSubmitted(true)
-    // Mock visual only — sin API aún
+    setError(null)
+
+    const emailOk = email.trim().toLowerCase() === MOCK_EMAIL
+    const passwordOk = password === MOCK_PASSWORD
+
+    if (!emailOk || !passwordOk) {
+      setError('Correo o contraseña incorrectos. Usa admin@correo.com / 1234')
+      return
+    }
+
+    sessionStorage.setItem('baches-mock-auth', '1')
+    navigate('/', { replace: true })
   }
 
   return (
@@ -33,7 +48,7 @@ export function Login() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,oklch(0.55_0.18_245/0.18),transparent_50%),radial-gradient(ellipse_at_80%_10%,oklch(0.82_0.14_78/0.22),transparent_45%),radial-gradient(ellipse_at_70%_85%,oklch(0.55_0.18_245/0.12),transparent_50%)]" />
         <div className="absolute -left-24 top-16 size-72 rounded-full bg-primary/15 blur-3xl" />
         <div className="absolute -right-16 bottom-10 size-80 rounded-full bg-accent/25 blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,oklch(0.55_0.18_245/0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.55_0.18_245/0.06)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className="absolute inset-0 opacity-[0.35] bg-[linear-gradient(to_right,oklch(0.55_0.18_245/0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.55_0.18_245/0.06)_1px,transparent_1px)] [background-size:48px_48px]" />
 
         {/* Pines decorativos */}
         <span className="civic-marker absolute left-[12%] top-[22%] size-8 opacity-80"><span /></span>
@@ -177,9 +192,12 @@ export function Login() {
               Entrar al mapa
             </Button>
 
-            {submitted && (
-              <p className="rounded-xl bg-secondary/80 px-3 py-2 text-center text-xs text-muted-foreground">
-                Vista de diseño — el login aún no está conectado al backend.
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 px-3 py-2 text-center text-xs text-destructive"
+              >
+                {error}
               </p>
             )}
           </form>
