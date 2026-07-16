@@ -75,7 +75,7 @@ export function Dashboard() {
         </div>
       </header>
 
-      <aside className={cn('glass absolute bottom-24 left-3 top-24 z-20 flex w-[calc(100%-1.5rem)] max-w-80 flex-col rounded-3xl p-4 shadow-glass transition-transform md:bottom-5 md:left-5 md:top-28', panelOpen ? 'translate-x-0' : '-translate-x-[120%] md:translate-x-0')}>
+      <aside className={cn('absolute bottom-24 left-3 top-24 z-20 flex w-[calc(100%-1.5rem)] max-w-80 flex-col rounded-3xl border bg-card/95 p-4 shadow-lg transition-transform md:bottom-5 md:left-5 md:top-28', panelOpen ? 'translate-x-0' : '-translate-x-[120%] md:translate-x-0')}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-primary">Santo Domingo</p>
