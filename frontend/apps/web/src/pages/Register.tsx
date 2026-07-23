@@ -37,7 +37,7 @@ export function Register() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,oklch(0.55_0.18_245/0.18),transparent_50%),radial-gradient(ellipse_at_80%_10%,oklch(0.82_0.14_78/0.22),transparent_45%),radial-gradient(ellipse_at_70%_85%,oklch(0.55_0.18_245/0.12),transparent_50%)]" />
         <div className="absolute -left-24 top-16 size-72 rounded-full bg-primary/15 blur-3xl" />
         <div className="absolute -right-16 bottom-10 size-80 rounded-full bg-accent/25 blur-3xl" />
-        <div className="absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,oklch(0.55_0.18_245/0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.55_0.18_245/0.06)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className="absolute inset-0 opacity-[0.35] bg-[linear-gradient(to_right,oklch(0.55_0.18_245/0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.55_0.18_245/0.06)_1px,transparent_1px)] [background-size:48px_48px]" />
 
         <span className="civic-marker absolute left-[12%] top-[22%] size-8 opacity-80"><span /></span>
         <span className="civic-marker civic-marker--critical absolute right-[18%] top-[30%] size-7 opacity-70"><span /></span>
