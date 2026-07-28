@@ -1,6 +1,6 @@
 package com.bachesrd.backend.dto;
 
-import com.bachesrd.backend.model.Rol;
+import com.bachesrd.backend.entity.Rol;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

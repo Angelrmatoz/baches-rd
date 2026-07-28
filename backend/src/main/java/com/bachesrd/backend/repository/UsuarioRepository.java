@@ -1,6 +1,6 @@
 package com.bachesrd.backend.repository;
 
-import com.bachesrd.backend.model.Usuario;
+import com.bachesrd.backend.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

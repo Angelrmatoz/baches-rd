@@ -2,26 +2,25 @@
 
 Baches RD es una solución de tecnología cívica diseñada para empoderar a los ciudadanos de Santo Domingo a reportar, documentar y validar colectivamente daños en la infraestructura vial pública (baches, grietas, hundimientos).
 
-El proyecto está diseñado bajo una filosofía de costo cero inicial y se ejecuta en un entorno de desarrollo 100% local basado en contenedores Docker y WSL2.
+El proyecto se ejecuta en un entorno de desarrollo local basado en contenedores Docker y WSL2.
 
 ---
 
-## 📁 Estructura del Repositorio
-
-El proyecto se divide en dos repositorios lógicos que conviven en esta estructura de directorios:
+## 📁 Estructura del Proyecto
 
 ```
 baches-rd/
+├── AGENTS.md             # Guía de referencia rápida para Desarrolladores e Asistentes IA
 ├── frontend/             # Monorepo Turborepo (React Native Expo + React Vite SPA)
 │   ├── apps/
 │   │   ├── mobile/       # Aplicación móvil para ciudadanos (Expo)
-│   │   └── web/          # Dashboard web administrativo y de visualización (Vite)
+│   │   └── web/          # Dashboard web administrativo (Vite + React)
 │   └── packages/
-│       └── shared-types/ # Tipos y definiciones de TypeScript compartidos
+│       └── shared-types/ # Interfaces TypeScript compartidas
 │
-└── backend/              # Backend en Spring Boot (Java 25 + Maven + PostGIS + Docker)
-    ├── docker/           # Infraestructura PostgreSQL 15 + PostGIS 3.4
-    └── src/              # API REST y lógica de negocio geoespacial
+└── backend/              # Backend en Spring Boot (Java 17 + Maven + PostGIS + Flyway)
+    ├── docker-compose.db.yml # PostgreSQL 17 + PostGIS 3.5 + pgAdmin
+    └── src/              # API REST y migraciones Flyway
 ```
 
 ---
@@ -30,48 +29,35 @@ baches-rd/
 
 * **Diseño Estético:** Estilo visual **"Liquid Glass"** con Glassmorphism premium.
 * **Componentes UI:** Shadcn UI (Web) y `react-native-reusables` (Móvil).
-* **Base de Datos Geoespacial:** PostgreSQL 15 + PostGIS 3.4 con índices GIST.
-* **Procesamiento de Archivos:** Flujo Direct Upload a Cloudinary (Signed Upload) para evitar sobrecarga del servidor.
-* **Compilación de Alto Rendimiento:** GraalVM para compilar el backend como imagen nativa de Linux.
+* **Base de Datos Geoespacial:** PostgreSQL 17 + PostGIS 3.5 con índices GIST.
+* **Seguridad:** Spring Security + JWT Tokens firmados mediante la variable `JWT_SECRET`.
 
 ---
 
-## 🚀 Requisitos de Entorno (Desarrollo Local en WSL2)
-
-Para garantizar un óptimo rendimiento de E/S de archivos y evitar problemas con Hot Module Replacement (HMR) y volúmenes de Docker, el desarrollo debe realizarse dentro del sistema de archivos de Linux en **WSL2**.
-
-### Prerrequisitos:
-1. **WSL2** configurado por defecto:
-   ```bash
-   wsl --set-default-version 2
-   ```
-2. **Docker Desktop** con la integración de WSL2 activa (`Settings -> General -> Use WSL 2 based engine`).
-3. **Node.js** v20+ e instalar **pnpm** de forma global.
-4. **Java 25** y **Maven** para la compilación del backend.
-
----
-
-## 🚦 Instrucciones Generales de Inicio
+## 🚦 Inicio Rápido de Desarrollo
 
 ### 1. Levantar la Base de Datos (PostGIS)
-Navega a la carpeta de backend y levanta los contenedores:
-```bash
-cd backend/docker
-docker compose up -d
-```
-
-### 2. Iniciar el Backend
-Desde la raíz del backend:
-```bash
+Navega a la carpeta de backend y ejecuta:
+```powershell
 cd backend
-mvn spring-boot:run
+docker compose -f docker-compose.db.yml up -d
 ```
 
-### 3. Iniciar el Frontend (Web y Móvil)
+### 2. Iniciar el Backend (Spring Boot)
+Define la variable de entorno `JWT_SECRET` y ejecuta:
+```powershell
+cd backend
+$env:JWT_SECRET="074142544c0e3e63e4c3c1ae7b76bd8852a40e3d3a45665b9393b59f85f6881e"
+.\mvnw.cmd spring-boot:run
+```
+
+### 3. Iniciar el Frontend (Web)
 Desde la raíz de la carpeta frontend:
-```bash
+```powershell
 cd frontend
 pnpm install
 pnpm dev
 ```
-Esto iniciará simultáneamente las aplicaciones web y móvil utilizando la canalización de Turborepo.
+
+---
+Para más detalles técnicos y guías de desarrollo, consulta [AGENTS.md](file:///c:/Dev/baches-rd/AGENTS.md).

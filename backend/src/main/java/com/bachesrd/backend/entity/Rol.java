@@ -1,4 +1,4 @@
-package com.bachesrd.backend.model;
+package com.bachesrd.backend.entity;
 
 public enum Rol {
     CIUDADANO,

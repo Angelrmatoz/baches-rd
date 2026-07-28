@@ -1,7 +1,7 @@
 package com.bachesrd.backend;
 
 import com.bachesrd.backend.dto.RegisterRequest;
-import com.bachesrd.backend.model.Rol;
+import com.bachesrd.backend.entity.Rol;
 import com.bachesrd.backend.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
