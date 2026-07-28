@@ -13,10 +13,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-/** Credenciales mock (hardcode) hasta conectar backend */
-const MOCK_EMAIL = 'admin@correo.com'
-const MOCK_PASSWORD = '1234'
-
 export function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -24,21 +20,44 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
 
-    const emailOk = email.trim().toLowerCase() === MOCK_EMAIL
-    const passwordOk = password === MOCK_PASSWORD
-
-    if (!emailOk || !passwordOk) {
-      setError('Correo o contraseña incorrectos. Usa admin@correo.com / 1234')
+    if (!email.trim() || !password) {
+      setError('Por favor completa todos los campos.')
       return
     }
 
-    sessionStorage.setItem('baches-mock-auth', '1')
-    navigate('/', { replace: true })
+    setLoading(true)
+    try {
+      const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        setError(data.message || 'Correo o contraseña incorrectos.')
+        return
+      }
+
+      const data = await response.json()
+      if (data.token) {
+        localStorage.setItem('baches-token', data.token)
+        if (data.user) {
+          localStorage.setItem('baches-user', JSON.stringify(data.user))
+        }
+      }
+      navigate('/', { replace: true })
+    } catch {
+      setError('Error al conectar con el servidor backend.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -188,8 +207,8 @@ export function Login() {
               </button>
             </div>
 
-            <Button type="submit" size="lg" className="mt-2 h-12 w-full rounded-xl text-sm font-semibold">
-              Entrar al mapa
+            <Button type="submit" size="lg" disabled={loading} className="mt-2 h-12 w-full rounded-xl text-sm font-semibold">
+              {loading ? 'Iniciando sesión...' : 'Entrar al mapa'}
             </Button>
 
             {error && (

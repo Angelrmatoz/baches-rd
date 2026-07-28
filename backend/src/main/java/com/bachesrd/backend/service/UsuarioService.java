@@ -1,5 +1,8 @@
 package com.bachesrd.backend.service;
 
+import com.bachesrd.backend.config.JwtService;
+import com.bachesrd.backend.dto.AuthResponse;
+import com.bachesrd.backend.dto.LoginRequest;
 import com.bachesrd.backend.dto.RegisterRequest;
 import com.bachesrd.backend.dto.UsuarioResponse;
 import com.bachesrd.backend.model.Rol;
@@ -18,6 +21,7 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Transactional
     public UsuarioResponse registrarUsuario(RegisterRequest request) {
@@ -36,6 +40,26 @@ public class UsuarioService {
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
 
         return mapToUsuarioResponse(usuarioGuardado);
+    }
+
+    public AuthResponse autenticarUsuario(LoginRequest request) {
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail().toLowerCase().trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas"));
+
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas");
+        }
+
+        if (!usuario.getActivo()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cuenta de usuario está desactivada");
+        }
+
+        String token = jwtService.generateToken(usuario.getEmail(), usuario.getRol().name());
+
+        return AuthResponse.builder()
+                .token(token)
+                .user(mapToUsuarioResponse(usuario))
+                .build();
     }
 
     public UsuarioResponse mapToUsuarioResponse(Usuario usuario) {

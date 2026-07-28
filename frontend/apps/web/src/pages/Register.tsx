@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Eye,
   EyeOff,
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export function Register() {
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,12 +23,57 @@ export function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSubmitted(true)
-    // Mock visual only — sin API aún
+    setError(null)
+
+    if (!name.trim() || !email.trim() || !password) {
+      setError('Por favor completa todos los campos.')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+
+    if (!acceptTerms) {
+      setError('Debes aceptar los términos y condiciones.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch('http://localhost:8080/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        setError(data.message || 'Error al crear la cuenta.')
+        return
+      }
+
+      navigate('/login', { replace: true })
+    } catch {
+      setError('Error al conectar con el servidor backend.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -216,13 +262,16 @@ export function Register() {
               </span>
             </label>
 
-            <Button type="submit" size="lg" className="mt-2 h-12 w-full rounded-xl text-sm font-semibold">
-              Crear cuenta
+            <Button type="submit" size="lg" disabled={loading} className="mt-2 h-12 w-full rounded-xl text-sm font-semibold">
+              {loading ? 'Creando cuenta...' : 'Crear cuenta'}
             </Button>
 
-            {submitted && (
-              <p className="rounded-xl bg-secondary/80 px-3 py-2 text-center text-xs text-muted-foreground">
-                Vista de diseño — el registro aún no está conectado al backend.
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 px-3 py-2 text-center text-xs text-destructive"
+              >
+                {error}
               </p>
             )}
           </form>
