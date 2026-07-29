@@ -1,14 +1,14 @@
 # Baches RD — Backend (Spring Boot API)
 
-Backend de alto rendimiento de Baches RD, implementado con **Spring Boot 3.4 / 4**, **Java 25**, **PostGIS 3.5**, **Flyway** y autenticación basada en **JWT**.
+Backend de alto rendimiento de Baches RD, implementado con **Spring Boot 3.4 / 4**, **Java 17 / 25**, **PostGIS 3.5**, **Flyway** y autenticación basada en **JWT**.
 
 ---
 
 ## 🛠️ Tecnologías y Arquitectura
 
-* **Lenguaje & Framework:** Java 17 + Spring Boot.
+* **Lenguaje & Framework:** Java 17/25 + Spring Boot.
 * **Seguridad:** Spring Security + filtro `JwtAuthFilter` con hash BCrypt para contraseñas.
-* **Persistencia Geoespacial:** Spring Data JPA + PostgreSQL 17 + PostGIS 3.5.
+* **Persistencia Geoespacial:** Spring Data JPA + PostgreSQL 17 + PostGIS 3.5 + `org.locationtech.jts`.
 * **Migraciones de Base de Datos:** Flyway (`src/main/resources/db/migration`).
 * **Documentación OpenAPI:** Swagger UI en `/swagger-ui.html`.
 
@@ -19,44 +19,45 @@ Backend de alto rendimiento de Baches RD, implementado con **Spring Boot 3.4 / 4
 El motor usa **PostgreSQL 17 con extensión PostGIS 3.5** activa.
 Las coordenadas de los baches se almacenan bajo el tipo de datos `GEOMETRY(POINT, 4326)`.
 
-### Migraciones Flyway Incluidas:
-- `V1__create_usuarios_table.sql`: Tabla de usuarios con roles (`CIUDADANO`, `ADMIN`).
-- `V2__enable_postgis_and_create_reportes.sql`: Extensión `postgis` y tablas `reportes_baches` (índice GiST), `fotos_reporte` y `validaciones`.
-- `V3__seed_admin_user.sql`: Usuario Administrador por defecto (`admin@bachesrd.com` / `admin123`).
+---
+
+## 🔑 Variables de Entorno (Configuradas en IntelliJ IDEA)
+
+| Variable | Descripción | Ejemplo |
+| --- | --- | --- |
+| `JWT_SECRET` | Clave secreta de firma HMAC de 256 bits | `074142544c0e3e63e4...` |
+| `JWT_EXPIRATION` | Tiempo de expiración del token en ms | `86400000` (24 horas) |
+| `CLOUDINARY_CLOUD_NAME` | Nombre de cuenta en Cloudinary | `baches-rd` |
+| `CLOUDINARY_API_KEY` | Clave API de Cloudinary | `1234567890` |
+| `CLOUDINARY_API_SECRET` | Secreto API de Cloudinary | `secret_cloudinary_key_baches` |
 
 ---
 
-## 🔑 Variables de Entorno Requeridas
+## 🧪 Pruebas Automatizadas
 
-| Variable | Descripción | Valor por Defecto |
-| --- | --- | --- |
-| `JWT_SECRET` | Clave secreta de firma HMAC de 256 bits para JWT | `baches_rd_super_secret_jwt_key_...` |
-| `JWT_EXPIRATION` | Tiempo de expiración del token en ms | `86400000` (24 horas) |
+El backend incluye una suite de **20 pruebas automatizadas** (unitarias, de integración y ciberseguridad):
+
+```powershell
+cd backend
+.\mvnw.cmd test
+```
 
 ---
 
 ## 🌐 Endpoints REST (`/api/v1`)
 
-### Autenticación (`/api/v1/auth`)
-* `POST /auth/register` - Registro de nuevos usuarios ciudadanos.
-* `POST /auth/login` - Autenticación con email/password. Retorna JWT Token y objeto `user`.
-
----
-
-## 🚀 Inicio Rápido para Desarrollo
-
-### 1. Levantar Contenedores Docker (PostgreSQL + PostGIS + pgAdmin)
-```powershell
-cd backend
-docker compose -f docker-compose.db.yml up -d
-```
-* **PostgreSQL:** `localhost:5433` (DB: `baches_rd_db`, User: `baches_user`, Pass: `baches_password`)
-* **pgAdmin:** `localhost:5050` (Email: `admin@bachesrd.com`, Pass: `adminpassword`)
-
-### 2. Ejecutar la Aplicación en IntelliJ IDEA / Maven
-Configura la variable de entorno `JWT_SECRET` en la configuración de ejecución de IntelliJ o ejecuta desde terminal:
-
-```powershell
-$env:JWT_SECRET="074142544c0e3e63e4c3c1ae7b76bd8852a40e3d3a45665b9393b59f85f6881e"
-.\mvnw.cmd spring-boot:run
-```
+* `POST /api/v1/auth/register` - Registro público.
+* `POST /api/v1/auth/login` - Inicio de sesión JWT.
+* `POST /api/v1/reports` - Crear bache (anti-duplicados a 30m → HTTP 409).
+* `GET /api/v1/reports/nearby` - Baches cercanos para el mapa.
+* `GET /api/v1/reports/{id}` - Detalle de bache.
+* `PATCH /api/v1/reports/{id}/status` - Cambiar estado (Admin).
+* `DELETE /api/v1/reports/{id}` - Eliminar bache.
+* `POST /api/v1/reports/{id}/validate` - Dar confirmación/like.
+* `DELETE /api/v1/reports/{id}/validate` - Quitar confirmación.
+* `GET /api/v1/reports/{id}/validators` - Listar validadores.
+* `GET /api/v1/photos/signature` - Firma HMAC SHA-1 para Direct Upload a Cloudinary.
+* `POST /api/v1/reports/{id}/photos` - Registrar foto.
+* `DELETE /api/v1/reports/{id}/photos/{photoId}` - Eliminar foto.
+* `GET /api/v1/users/me` - Perfil del usuario actual.
+* `GET /api/v1/users/me/reports` - Reportes del usuario actual.
