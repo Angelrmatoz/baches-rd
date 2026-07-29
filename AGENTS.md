@@ -9,7 +9,7 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
 **Baches RD** es una plataforma de Tecnología Cívica para reportar, validar y visualizar daños viales en Santo Domingo de Guzmán, República Dominicana.
 
 - **Frontend:** Monorepo Turborepo con React + Vite (Web SPA) y React Native / Expo (Mobile App).
-- **Backend:** Spring Boot (Java 17) + PostgreSQL 17 / PostGIS 3.5 + Flyway.
+- **Backend:** Spring Boot (Java 25) + PostgreSQL 17 / PostGIS 3.5 + Flyway.
 - **Base de Datos local (Docker):** PostgreSQL en puerto `5433`, pgAdmin en puerto `5050`.
 
 ---

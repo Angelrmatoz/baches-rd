@@ -1,6 +1,6 @@
 # Baches RD — Backend (Spring Boot API)
 
-Backend de alto rendimiento de Baches RD, implementado con **Spring Boot 3.4 / 4**, **Java 17**, **PostGIS 3.5**, **Flyway** y autenticación basada en **JWT**.
+Backend de alto rendimiento de Baches RD, implementado con **Spring Boot 3.4 / 4**, **Java 25**, **PostGIS 3.5**, **Flyway** y autenticación basada en **JWT**.
 
 ---
 
