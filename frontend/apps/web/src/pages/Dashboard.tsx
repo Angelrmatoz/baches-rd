@@ -204,7 +204,7 @@ export function Dashboard() {
           </div>
 
           {accountOpen && user && (
-            <div role="menu" className="absolute right-0 top-[calc(100%+0.5rem)] flex w-56 flex-col gap-1 rounded-2xl border bg-card p-2 shadow-lg">
+            <div role="menu" className="absolute right-0 top-[calc(100%+0.5rem)] flex w-56 flex-col gap-1 rounded-2xl border bg-card/95 p-2 shadow-xl backdrop-blur-md animate-dropdown">
               <div className="px-3 py-2">
                 <p className="text-sm font-semibold">{user.nombre}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
