@@ -63,3 +63,9 @@ pnpm format
    * El cliente pide firma criptográfica al backend (`GET /photos/signature`).
    * El cliente sube la foto directamente a la API de Cloudinary.
    * El cliente envía la URL e ID al backend para registrarla.
+4. **Modo Edición en `ReportDetailModal.tsx`:**
+   * Inputs editables para descripción, severidad y dirección.
+   * Botón "Agregar foto" y equis (X) para borrar fotos individuales.
+   * Banner de error si se excede límite de 3 fotos.
+   * Botón "Guardar Cambios" llama a `PATCH /api/v1/reports/{id}`.
+   * Input file se resetea tras cada selección.

@@ -41,6 +41,18 @@ public class CloudinaryService {
                 .build();
     }
 
+    public String extractPublicIdFromUrl(String url) {
+        if (url == null || url.isBlank()) return null;
+        if (!url.contains("/upload/")) return null;
+
+        String afterUpload = url.substring(url.indexOf("/upload/") + 8);
+        if (afterUpload.matches("^v\\d+/.*")) {
+            afterUpload = afterUpload.substring(afterUpload.indexOf('/') + 1);
+        }
+        int dot = afterUpload.lastIndexOf('.');
+        return dot > 0 ? afterUpload.substring(0, dot) : afterUpload;
+    }
+
     public void eliminarImagen(String publicId) {
         if (publicId == null || publicId.isBlank()) return;
 

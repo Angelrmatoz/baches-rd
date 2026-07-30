@@ -32,6 +32,8 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
 - **Duración del token:** 24 horas por defecto (`JWT_EXPIRATION=86400000`).
 - **Filtro de seguridad:** `JwtAuthFilter` valida los tokens `Authorization: Bearer <token>` en cada solicitud protegida.
 - **Manejador de Errores Centralizado:** `GlobalExceptionHandler` devuelve JSONs formateados para HTTP 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden), 404 (Not Found), 409 (Conflict anti-duplicados a 30m) y 500 (Internal Error).
+- **Avatar Cloudinary:** `CloudinaryService.extractPublicIdFromUrl()` extrae `public_id` de URL; `UsuarioService.actualizarPerfil` elimina avatar anterior de Cloudinary al cambiar o borrar.
+- **Límite 3 fotos:** `ReporteService.agregarFoto` valía máximo 3 fotos via `fotoRepository.countByReporteId`. Frontend también bloquea UI al alcanzar límite.
 
 ---
 
@@ -44,8 +46,9 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
 | `POST` | `/api/v1/reports` | Autenticado | Crear bache (evalúa colisión <30m → HTTP 409) |
 | `GET` | `/api/v1/reports/nearby` | Público | Obtener baches cercanos en el mapa |
 | `GET` | `/api/v1/reports/{id}` | Público | Obtener detalle de bache con fotos y validaciones |
+| `PATCH`| `/api/v1/reports/{id}` | Creador/Admin | Editar descripción, severidad, dirección |
 | `PATCH`| `/api/v1/reports/{id}/status` | Admin | Cambiar estado (`ACTIVO`, `EN_REPARACION`, `RESUELTO`) |
-| `DELETE`| `/api/v1/reports/{id}` | Creador/Admin | Eliminar reporte de bache |
+| `DELETE`| `/api/v1/reports/{id}` | Creador/Admin | Eliminar reporte de bache (con limpieza Cloudinary) |
 | `POST` | `/api/v1/reports/{id}/validate` | Autenticado | Confirmar bache (dar "like" social) |
 | `DELETE`| `/api/v1/reports/{id}/validate` | Autenticado | Remover confirmación/like |
 | `GET` | `/api/v1/reports/{id}/validators` | Público | Listar usuarios que validaron el reporte |
@@ -68,7 +71,7 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
   - Subida directa en paralelo a Cloudinary tras recibir la firma HMAC SHA-1 del backend (`/api/v1/photos/signature`).
 
 ### 2. UI/UX & Sistema de Diseño (Dark Glassmorphism)
-- **Modal de Detalle (`ReportDetailModal.tsx`):** Carrusel de fotos interactivo con controles (`ChevronLeft`, `ChevronRight`), contador de imágenes `1 / X`, badges de severidad/estado y mapa interactivo.
+- **Modal de Detalle (`ReportDetailModal.tsx`):** Carrusel de fotos interactivo con controles (`ChevronLeft`, `ChevronRight`), contador de imágenes `1 / X`, badges de severidad/estado y mapa interactivo. **Modo edición:** inputs editables para descripción, severidad y dirección; botones para agregar/borrar fotos individuales; banner de error si excede límite de 3 fotos; reset de input file tras selección.
 - **Diálogo de Confirmación de Borrado (`ConfirmDeleteDialog.tsx`):** Modal oscuro personalizado con efecto de cristal traslúcido (`backdrop-blur-sm`, `glass`), reemplazando las ventanas nativas del navegador.
 - **Centro de Notificaciones (`Dashboard.tsx`):**
   - Indicador de notificaciones no leídas posicionado en la esquina superior derecha (`top-1.5 right-1.5`) con pulso animado.
@@ -83,7 +86,12 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
 La plataforma cuenta con cobertura de pruebas automatizadas en Backend y Frontend:
 
 ### 1. Backend (Spring Boot + JUnit 5 + MockMvc):
-- **20 Pruebas automatizadas:** `UsuarioServiceTest`, `ReporteServiceTest`, `ValidacionServiceTest`, `CloudinaryServiceTest`, `SecurityIntegrationTest`, `AuthControllerTest`.
+- **38 Pruebas automatizadas (20 anteriores + 18 nuevas):** `UsuarioServiceTest` (9), `ReporteServiceTest` (11), `ValidacionServiceTest` (3), `CloudinaryServiceTest` (7), `SecurityIntegrationTest` (5), `AuthControllerTest` (2), `BackendApplicationTests` (1).
+- **Pruebas nuevas:**
+  - `extractPublicIdFromUrl` (6 casos: URL con/sin versión, null, vacía, sin `/upload/`, PNG).
+  - `actualizarPerfil` avatar cleanup (3 casos: cambiar, borrar, mismo URL).
+  - `actualizarReporte` (4 casos: creador ok, admin ok, otro usuario 403, inexistente 404).
+  - `agregarFoto` (2 casos: éxito, límite 3 fotos 400).
 
 ### 2. Frontend (React 19 + Vitest + Playwright):
 - **16 Pruebas Unitarias / Integración / Ciberseguridad (`pnpm test`):**

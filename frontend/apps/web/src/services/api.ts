@@ -6,6 +6,7 @@ import type {
   ReporteRequest,
   ReporteResponse,
   UpdatePerfilRequest,
+  UpdateReporteRequest,
   UsuarioResponse,
 } from '@repo/shared-types';
 
@@ -111,6 +112,17 @@ export const api = {
 
   deleteReport: (id: string) =>
     request<void>(`/reports/${id}`, {
+      method: 'DELETE',
+    }),
+
+  updateReport: (id: string, data: UpdateReporteRequest) =>
+    request<ReporteResponse>(`/reports/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deletePhoto: (reportId: string, photoId: string) =>
+    request<void>(`/reports/${reportId}/photos/${photoId}`, {
       method: 'DELETE',
     }),
 

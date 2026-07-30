@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface FotoReporteRepository extends JpaRepository<FotoReporte, UUID> {
 
     List<FotoReporte> findByReporteIdOrderByCreatedAtAsc(UUID reporteId);
+
+    long countByReporteId(UUID reporteId);
 }

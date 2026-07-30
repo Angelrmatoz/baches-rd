@@ -35,6 +35,12 @@ export interface ReporteRequest {
   severidad?: Severidad;
 }
 
+export interface UpdateReporteRequest {
+  descripcion?: string;
+  direccionAprox?: string;
+  severidad?: Severidad;
+}
+
 export interface FotoRequest {
   cloudinaryUrl: string;
   cloudinaryPublicId: string;

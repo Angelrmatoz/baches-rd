@@ -31,4 +31,47 @@ class CloudinaryServiceTest {
         assertThat(response.getCloudName()).isEqualTo("baches-rd-test");
         assertThat(response.getTimestamp()).isGreaterThan(0);
     }
+
+    @Test
+    @DisplayName("Extraer public_id de URL con versión (vXXXX)")
+    void extractPublicIdFromUrl_ConVersion_RetornaPublicId() {
+        String url = "https://res.cloudinary.com/demo/image/upload/v123456/folder/avatar.jpg";
+        String result = cloudinaryService.extractPublicIdFromUrl(url);
+        assertThat(result).isEqualTo("folder/avatar");
+    }
+
+    @Test
+    @DisplayName("Extraer public_id de URL sin versión")
+    void extractPublicIdFromUrl_SinVersion_RetornaPublicId() {
+        String url = "https://res.cloudinary.com/demo/image/upload/reportes/foto.jpg";
+        String result = cloudinaryService.extractPublicIdFromUrl(url);
+        assertThat(result).isEqualTo("reportes/foto");
+    }
+
+    @Test
+    @DisplayName("Retornar null si URL es null")
+    void extractPublicIdFromUrl_Null_RetornaNull() {
+        assertThat(cloudinaryService.extractPublicIdFromUrl(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("Retornar null si URL está vacía")
+    void extractPublicIdFromUrl_Vacia_RetornaNull() {
+        assertThat(cloudinaryService.extractPublicIdFromUrl("")).isNull();
+    }
+
+    @Test
+    @DisplayName("Retornar null si URL no contiene /upload/")
+    void extractPublicIdFromUrl_SinUpload_RetornaNull() {
+        String url = "https://ejemplo.com/imagen.jpg";
+        assertThat(cloudinaryService.extractPublicIdFromUrl(url)).isNull();
+    }
+
+    @Test
+    @DisplayName("Extraer public_id de URL con formato PNG")
+    void extractPublicIdFromUrl_Png_RetornaPublicId() {
+        String url = "https://res.cloudinary.com/demo/image/upload/v1/bache.png";
+        String result = cloudinaryService.extractPublicIdFromUrl(url);
+        assertThat(result).isEqualTo("bache");
+    }
 }

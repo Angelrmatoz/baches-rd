@@ -23,6 +23,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final CloudinaryService cloudinaryService;
 
     @Transactional
     public UsuarioResponse registrarUsuario(RegisterRequest request) {
@@ -69,7 +70,18 @@ public class UsuarioService {
             usuario.setNombre(request.getNombre().trim());
         }
         if (request.getAvatarUrl() != null) {
-            usuario.setAvatarUrl(request.getAvatarUrl().trim());
+            String oldUrl = usuario.getAvatarUrl();
+            String newUrl = request.getAvatarUrl().trim();
+            boolean changed = !newUrl.equals(oldUrl != null ? oldUrl : "");
+
+            if (changed && oldUrl != null && !oldUrl.isBlank()) {
+                String oldPublicId = cloudinaryService.extractPublicIdFromUrl(oldUrl);
+                if (oldPublicId != null) {
+                    cloudinaryService.eliminarImagen(oldPublicId);
+                }
+            }
+
+            usuario.setAvatarUrl(newUrl.isEmpty() ? null : newUrl);
         }
         Usuario actualizado = usuarioRepository.save(usuario);
         return mapToUsuarioResponse(actualizado);

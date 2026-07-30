@@ -35,7 +35,7 @@ Las coordenadas de los baches se almacenan bajo el tipo de datos `GEOMETRY(POINT
 
 ## 🧪 Pruebas Automatizadas
 
-El backend incluye una suite de **20 pruebas automatizadas** (unitarias, de integración y ciberseguridad):
+El backend incluye una suite de **38 pruebas automatizadas** (unitarias, de integración y ciberseguridad):
 
 ```powershell
 cd backend
@@ -51,13 +51,15 @@ cd backend
 * `POST /api/v1/reports` - Crear bache (anti-duplicados a 30m → HTTP 409).
 * `GET /api/v1/reports/nearby` - Baches cercanos para el mapa.
 * `GET /api/v1/reports/{id}` - Detalle de bache.
+* `PATCH /api/v1/reports/{id}` - Editar descripción, severidad, dirección (Creador/Admin).
 * `PATCH /api/v1/reports/{id}/status` - Cambiar estado (Admin).
-* `DELETE /api/v1/reports/{id}` - Eliminar bache.
+* `DELETE /api/v1/reports/{id}` - Eliminar bache (con limpieza Cloudinary).
 * `POST /api/v1/reports/{id}/validate` - Dar confirmación/like.
 * `DELETE /api/v1/reports/{id}/validate` - Quitar confirmación.
 * `GET /api/v1/reports/{id}/validators` - Listar validadores.
 * `GET /api/v1/photos/signature` - Firma HMAC SHA-1 para Direct Upload a Cloudinary.
 * `POST /api/v1/reports/{id}/photos` - Registrar foto.
-* `DELETE /api/v1/reports/{id}/photos/{photoId}` - Eliminar foto.
+* `DELETE /api/v1/reports/{id}/photos/{photoId}` - Eliminar foto (con limpieza Cloudinary).
 * `GET /api/v1/users/me` - Perfil del usuario actual.
+* `PATCH /api/v1/users/me` - Actualizar perfil (nombre, email, avatar). Al cambiar/borrar avatar, elimina imagen anterior de Cloudinary.
 * `GET /api/v1/users/me/reports` - Reportes del usuario actual.

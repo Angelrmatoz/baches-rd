@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -108,6 +109,30 @@ public class ReporteService {
     }
 
     @Transactional
+    public ReporteResponse actualizarReporte(UUID id, UpdateReporteRequest request, Usuario usuarioActual) {
+        ReporteBache reporte = reporteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporte no encontrado"));
+
+        if (!usuarioActual.getRol().equals(Rol.ADMIN) && !reporte.getUsuario().getId().equals(usuarioActual.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permisos para editar este reporte");
+        }
+
+        if (request.getDescripcion() != null) {
+            reporte.setDescripcion(request.getDescripcion().trim());
+        }
+        if (request.getDireccionAprox() != null) {
+            reporte.setDireccionAprox(request.getDireccionAprox().trim());
+        }
+        if (request.getSeveridad() != null) {
+            reporte.setSeveridad(request.getSeveridad());
+        }
+
+        reporte.setUpdatedAt(Instant.now());
+        ReporteBache actualizado = reporteRepository.save(reporte);
+        return mapToReporteResponse(actualizado, usuarioActual);
+    }
+
+    @Transactional
     public void eliminarReporte(UUID id, Usuario usuarioActual) {
         ReporteBache reporte = reporteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporte no encontrado"));
@@ -133,6 +158,11 @@ public class ReporteService {
 
         if (!usuarioActual.getRol().equals(Rol.ADMIN) && !reporte.getUsuario().getId().equals(usuarioActual.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permisos para agregar fotos a este reporte");
+        }
+
+        long totalFotos = fotoRepository.countByReporteId(reporteId);
+        if (totalFotos >= 3) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Máximo 3 fotos por reporte");
         }
 
         FotoReporte foto = FotoReporte.builder()

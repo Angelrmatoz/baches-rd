@@ -33,7 +33,7 @@ baches-rd/
 * **Componentes UI & Animaciones:** Shadcn UI + Lucide Icons + micro-animaciones personalizadas CSS (`animate-dropdown`, `animate-item-dismiss`, `animate-modal-pop`).
 * **Geolocalización & Autocompletado de Calles:** Geocodificación inteligente con OpenStreetMap Nominatim, sanitización de términos locales dominicanos (`esquina`, `frente a`) y validación estricta de direcciones reales en Santo Domingo.
 * **Direct Upload Múltiple a Cloudinary:** Carga de hasta 3 fotos por reporte (5 KB a 5 MB c/u) con validación estricta de tipo de archivo (exclusivo imágenes, cero videos).
-* **Gestión de Reportes:** Carrusel de fotos interactivo `1/X`, eliminación segura de reportes con limpieza de imágenes en Cloudinary y modal de confirmación `ConfirmDeleteDialog`.
+* **Gestión de Reportes:** Carrusel de fotos interactivo `1/X`, edición de descripción/severidad/dirección, agregar/borrar fotos individuales (máx 3), eliminación segura con limpieza de Cloudinary y modal de confirmación `ConfirmDeleteDialog`.
 * **Centro de Notificaciones Interactivo:** Panel de notificaciones con estado de lectura, eliminación individual y descarte masivo animado.
 * **Base de Datos Geoespacial:** PostgreSQL 17 + PostGIS 3.5 con índices GiST (`Geometry(Point, 4326)`).
 * **Filtro Anti-Duplicados:** Algoritmo PostGIS `ST_DWithin` a 30m para evitar reportes colisionados (HTTP 409 Conflict).

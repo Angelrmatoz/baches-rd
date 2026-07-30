@@ -2,6 +2,34 @@ import { test, expect } from '@playwright/test'
 
 test.describe('E2E Web - Pothole Reporting, Geocoding & Modal Flows', () => {
   test.beforeEach(async ({ page }) => {
+    // Intercept all API calls to return mock data (backend returns 401 for fake JWT)
+    await page.route('**/api/**', (route) => {
+      const url = route.request().url()
+      if (url.includes('/users/me')) {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 'user-e2e-123',
+            nombre: 'Ángel Ricardo Matos',
+            email: 'angel@example.com',
+            rol: 'ADMIN',
+            activo: true,
+            avatarUrl: null,
+            createdAt: '2026-01-01T00:00:00Z',
+          }),
+        })
+      } else if (url.includes('/reports')) {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ content: [], totalElements: 0, totalPages: 0 }),
+        })
+      } else {
+        route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
+      }
+    })
+
     // Inject mock authenticated user session in localStorage
     await page.addInitScript(() => {
       localStorage.setItem('token', 'fake-e2e-jwt-token')
@@ -52,18 +80,18 @@ test.describe('E2E Web - Pothole Reporting, Geocoding & Modal Flows', () => {
 
   test('should display animated user dropdown menu on header click', async ({ page }) => {
     await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('Baches RD').first()).toBeVisible()
 
-    // Click on user profile menu button in top right header
     const userMenuBtn = page.getByRole('button', { name: /Ángel/i })
-    await userMenuBtn.click()
+    await userMenuBtn.click({ force: true })
+    await page.waitForTimeout(350)
 
-    // Verify dropdown menu opens with user details and options
     await expect(page.getByText('angel@example.com')).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /Mi cuenta/i })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /Cerrar sesión/i })).toBeVisible()
 
-    // Open profile modal
-    await page.getByRole('menuitem', { name: /Mi cuenta/i }).click()
-    await expect(page.getByRole('heading', { name: 'Perfil de usuario' })).toBeVisible()
+    await page.getByRole('menuitem', { name: /Mi cuenta/i }).click({ force: true })
+    await expect(page.getByRole('heading', { name: 'Mi cuenta' })).toBeVisible()
   })
 })

@@ -38,6 +38,9 @@ class UsuarioServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private CloudinaryService cloudinaryService;
+
     @InjectMocks
     private UsuarioService usuarioService;
 
@@ -148,5 +151,58 @@ class UsuarioServiceTest {
         assertThat(response.getNombre()).isEqualTo("Juan Actualizado");
         assertThat(response.getAvatarUrl()).isEqualTo("https://res.cloudinary.com/demo/image/upload/v123/avatar.jpg");
         verify(usuarioRepository, times(1)).save(usuarioPrueba);
+    }
+
+    @Test
+    @DisplayName("Cambiar avatar elimina imagen anterior de Cloudinary")
+    void actualizarPerfil_CambiarAvatar_EliminaCloudinary() {
+        String oldAvatar = "https://res.cloudinary.com/demo/image/upload/v1/old_avatar.jpg";
+        usuarioPrueba.setAvatarUrl(oldAvatar);
+        when(cloudinaryService.extractPublicIdFromUrl(oldAvatar)).thenReturn("old_avatar");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.bachesrd.backend.dto.UpdatePerfilRequest updateReq = com.bachesrd.backend.dto.UpdatePerfilRequest.builder()
+                .avatarUrl("https://res.cloudinary.com/demo/image/upload/v2/new_avatar.jpg")
+                .build();
+
+        usuarioService.actualizarPerfil(usuarioPrueba, updateReq);
+
+        verify(cloudinaryService).extractPublicIdFromUrl(oldAvatar);
+        verify(cloudinaryService).eliminarImagen("old_avatar");
+    }
+
+    @Test
+    @DisplayName("Borrar avatar (set null) elimina imagen anterior de Cloudinary")
+    void actualizarPerfil_BorrarAvatar_EliminaCloudinary() {
+        String oldAvatar = "https://res.cloudinary.com/demo/image/upload/v1/old_avatar.jpg";
+        usuarioPrueba.setAvatarUrl(oldAvatar);
+        when(cloudinaryService.extractPublicIdFromUrl(oldAvatar)).thenReturn("old_avatar");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.bachesrd.backend.dto.UpdatePerfilRequest updateReq = com.bachesrd.backend.dto.UpdatePerfilRequest.builder()
+                .avatarUrl("")
+                .build();
+
+        usuarioService.actualizarPerfil(usuarioPrueba, updateReq);
+
+        verify(cloudinaryService).extractPublicIdFromUrl(oldAvatar);
+        verify(cloudinaryService).eliminarImagen("old_avatar");
+        assertThat(usuarioPrueba.getAvatarUrl()).isNull();
+    }
+
+    @Test
+    @DisplayName("No eliminar Cloudinary si avatar no cambió")
+    void actualizarPerfil_MismoAvatar_NoEliminaCloudinary() {
+        usuarioPrueba.setAvatarUrl("https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.bachesrd.backend.dto.UpdatePerfilRequest updateReq = com.bachesrd.backend.dto.UpdatePerfilRequest.builder()
+                .avatarUrl("https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg")
+                .build();
+
+        usuarioService.actualizarPerfil(usuarioPrueba, updateReq);
+
+        verify(cloudinaryService, never()).extractPublicIdFromUrl(any());
+        verify(cloudinaryService, never()).eliminarImagen(any());
     }
 }

@@ -2,6 +2,7 @@ package com.bachesrd.backend.controller;
 
 import com.bachesrd.backend.dto.ReporteRequest;
 import com.bachesrd.backend.dto.ReporteResponse;
+import com.bachesrd.backend.dto.UpdateReporteRequest;
 import com.bachesrd.backend.dto.UpdateStatusRequest;
 import com.bachesrd.backend.entity.Rol;
 import com.bachesrd.backend.entity.Usuario;
@@ -89,6 +90,20 @@ public class ReporteController {
     ) {
         Usuario usuario = getUsuarioAutenticado(authentication);
         ReporteResponse response = reporteService.obtenerPorId(id, usuario);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ReporteResponse> actualizarReporte(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateReporteRequest request,
+            Authentication authentication
+    ) {
+        Usuario usuario = getUsuarioAutenticado(authentication);
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no autenticado");
+        }
+        ReporteResponse response = reporteService.actualizarReporte(id, request, usuario);
         return ResponseEntity.ok(response);
     }
 
