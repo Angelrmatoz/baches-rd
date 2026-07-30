@@ -1,21 +1,46 @@
 package com.bachesrd.backend;
 
+import com.bachesrd.backend.entity.Rol;
+import com.bachesrd.backend.entity.Usuario;
+import com.bachesrd.backend.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @Slf4j
 @SpringBootApplication
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
 public class BackendApplication {
 
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(BackendApplication.class);
         Environment env = app.run(args).getEnvironment();
         logApplicationStartup(env);
+    }
+
+    @Bean
+    CommandLineRunner seedAdmin(UsuarioRepository repo, PasswordEncoder encoder) {
+        return args -> {
+            if (repo.findByEmail("admin@bachesrd.com").isEmpty()) {
+                repo.save(Usuario.builder()
+                        .nombre("Administrador Baches RD")
+                        .email("admin@bachesrd.com")
+                        .passwordHash(encoder.encode("admin123"))
+                        .rol(Rol.ADMIN)
+                        .activo(true)
+                        .build());
+                log.info("Usuario administrador creado: admin@bachesrd.com");
+            }
+        };
     }
 
     private static void logApplicationStartup(Environment env) {
