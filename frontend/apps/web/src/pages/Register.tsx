@@ -13,6 +13,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { api } from '@/services/api'
 
 export function Register() {
   const navigate = useNavigate()
@@ -52,25 +53,15 @@ export function Register() {
 
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: name.trim(),
-          email: email.trim(),
-          password,
-        }),
+      await api.register({
+        nombre: name.trim(),
+        email: email.trim(),
+        password,
       })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        setError(data.message || 'Error al crear la cuenta.')
-        return
-      }
-
       navigate('/login', { replace: true })
-    } catch {
-      setError('Error al conectar con el servidor backend.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al crear la cuenta'
+      setError(msg)
     } finally {
       setLoading(false)
     }

@@ -12,6 +12,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { api } from '@/services/api'
 
 export function Login() {
   const navigate = useNavigate()
@@ -33,28 +34,14 @@ export function Login() {
 
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        setError(data.message || 'Correo o contraseña incorrectos.')
-        return
-      }
-
-      const data = await response.json()
+      const data = await api.login({ email: email.trim(), password })
       if (data.token) {
-        localStorage.setItem('baches-token', data.token)
-        if (data.user) {
-          localStorage.setItem('baches-user', JSON.stringify(data.user))
-        }
+        localStorage.setItem('token', data.token)
       }
       navigate('/', { replace: true })
-    } catch {
-      setError('Error al conectar con el servidor backend.')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al iniciar sesión'
+      setError(msg)
     } finally {
       setLoading(false)
     }

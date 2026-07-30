@@ -48,6 +48,9 @@ class ReporteServiceTest {
     @Mock
     private ValidacionRepository validacionRepository;
 
+    @Mock
+    private CloudinaryService cloudinaryService;
+
     @InjectMocks
     private ReporteService reporteService;
 

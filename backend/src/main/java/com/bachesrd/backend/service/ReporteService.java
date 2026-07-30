@@ -27,6 +27,7 @@ public class ReporteService {
     private final ReporteBacheRepository reporteRepository;
     private final FotoReporteRepository fotoRepository;
     private final ValidacionRepository validacionRepository;
+    private final CloudinaryService cloudinaryService;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Transactional
@@ -115,6 +116,13 @@ public class ReporteService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permisos para eliminar este reporte");
         }
 
+        List<FotoReporte> fotos = fotoRepository.findByReporteIdOrderByCreatedAtAsc(id);
+        for (FotoReporte f : fotos) {
+            if (f.getCloudinaryPublicId() != null) {
+                cloudinaryService.eliminarImagen(f.getCloudinaryPublicId());
+            }
+        }
+
         reporteRepository.delete(reporte);
     }
 
@@ -149,6 +157,10 @@ public class ReporteService {
 
         if (!usuarioActual.getRol().equals(Rol.ADMIN) && !foto.getReporte().getUsuario().getId().equals(usuarioActual.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permisos para eliminar esta foto");
+        }
+
+        if (foto.getCloudinaryPublicId() != null) {
+            cloudinaryService.eliminarImagen(foto.getCloudinaryPublicId());
         }
 
         fotoRepository.delete(foto);
