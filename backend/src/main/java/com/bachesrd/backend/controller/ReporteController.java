@@ -31,6 +31,9 @@ public class ReporteController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
+        if (authentication.getPrincipal() instanceof Usuario u) {
+            return u;
+        }
         return usuarioRepository.findByEmail(authentication.getName()).orElse(null);
     }
 
@@ -45,6 +48,26 @@ public class ReporteController {
         }
         ReporteResponse response = reporteService.crearReporte(request, usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<org.springframework.data.domain.Page<ReporteResponse>> obtenerReportes(
+            @RequestParam(required = false) Double minLat,
+            @RequestParam(required = false) Double maxLat,
+            @RequestParam(required = false) Double minLon,
+            @RequestParam(required = false) Double maxLon,
+            @RequestParam(required = false) com.bachesrd.backend.entity.EstadoReporte estado,
+            @RequestParam(required = false) com.bachesrd.backend.entity.Severidad severidad,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        Usuario usuario = getUsuarioAutenticado(authentication);
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<ReporteResponse> result = reporteService.obtenerReportes(
+                minLat, maxLat, minLon, maxLon, estado, severidad, pageable, usuario
+        );
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/nearby")

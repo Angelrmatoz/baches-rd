@@ -131,4 +131,22 @@ class UsuarioServiceTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("La cuenta de usuario está desactivada");
     }
+
+    @Test
+    @DisplayName("Actualizar perfil de usuario exitosamente")
+    void actualizarPerfil_Exitoso() {
+        com.bachesrd.backend.dto.UpdatePerfilRequest updateReq = com.bachesrd.backend.dto.UpdatePerfilRequest.builder()
+                .nombre("Juan Actualizado")
+                .avatarUrl("https://res.cloudinary.com/demo/image/upload/v123/avatar.jpg")
+                .build();
+
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UsuarioResponse response = usuarioService.actualizarPerfil(usuarioPrueba, updateReq);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getNombre()).isEqualTo("Juan Actualizado");
+        assertThat(response.getAvatarUrl()).isEqualTo("https://res.cloudinary.com/demo/image/upload/v123/avatar.jpg");
+        verify(usuarioRepository, times(1)).save(usuarioPrueba);
+    }
 }

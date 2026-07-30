@@ -4,6 +4,7 @@ import com.bachesrd.backend.config.JwtService;
 import com.bachesrd.backend.dto.AuthResponse;
 import com.bachesrd.backend.dto.LoginRequest;
 import com.bachesrd.backend.dto.RegisterRequest;
+import com.bachesrd.backend.dto.UpdatePerfilRequest;
 import com.bachesrd.backend.dto.UsuarioResponse;
 import com.bachesrd.backend.entity.Rol;
 import com.bachesrd.backend.entity.Usuario;
@@ -60,6 +61,18 @@ public class UsuarioService {
                 .token(token)
                 .user(mapToUsuarioResponse(usuario))
                 .build();
+    }
+
+    @Transactional
+    public UsuarioResponse actualizarPerfil(Usuario usuario, UpdatePerfilRequest request) {
+        if (request.getNombre() != null && !request.getNombre().isBlank()) {
+            usuario.setNombre(request.getNombre().trim());
+        }
+        if (request.getAvatarUrl() != null) {
+            usuario.setAvatarUrl(request.getAvatarUrl().trim());
+        }
+        Usuario actualizado = usuarioRepository.save(usuario);
+        return mapToUsuarioResponse(actualizado);
     }
 
     public UsuarioResponse mapToUsuarioResponse(Usuario usuario) {

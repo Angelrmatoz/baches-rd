@@ -1,19 +1,19 @@
 package com.bachesrd.backend.controller;
 
 import com.bachesrd.backend.dto.ReporteResponse;
+import com.bachesrd.backend.dto.UpdatePerfilRequest;
 import com.bachesrd.backend.dto.UsuarioResponse;
 import com.bachesrd.backend.entity.Usuario;
 import com.bachesrd.backend.repository.ReporteBacheRepository;
 import com.bachesrd.backend.repository.UsuarioRepository;
 import com.bachesrd.backend.service.ReporteService;
 import com.bachesrd.backend.service.UsuarioService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -32,6 +32,9 @@ public class UserController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
+        if (authentication.getPrincipal() instanceof Usuario u) {
+            return u;
+        }
         return usuarioRepository.findByEmail(authentication.getName()).orElse(null);
     }
 
@@ -42,6 +45,19 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no autenticado");
         }
         return ResponseEntity.ok(usuarioService.mapToUsuarioResponse(usuario));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UsuarioResponse> actualizarPerfil(
+            @Valid @RequestBody UpdatePerfilRequest request,
+            Authentication authentication
+    ) {
+        Usuario usuario = getUsuarioAutenticado(authentication);
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no autenticado");
+        }
+        UsuarioResponse response = usuarioService.actualizarPerfil(usuario, request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me/reports")

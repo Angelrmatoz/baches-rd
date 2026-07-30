@@ -47,4 +47,35 @@ public interface ReporteBacheRepository extends JpaRepository<ReporteBache, UUID
     );
 
     List<ReporteBache> findByUsuarioIdOrderByCreatedAtDesc(UUID usuarioId);
+
+    @Query(value = """
+        SELECT * FROM reportes_baches r
+        WHERE ST_Within(
+            r.coordenadas,
+            ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326)
+        )
+        AND (:estado IS NULL OR r.estado = :estado)
+        AND (:severidad IS NULL OR r.severidad = :severidad)
+        ORDER BY r.created_at DESC
+        """, nativeQuery = true)
+    List<ReporteBache> findInBoundingBox(
+            @Param("minLat") double minLat,
+            @Param("minLon") double minLon,
+            @Param("maxLat") double maxLat,
+            @Param("maxLon") double maxLon,
+            @Param("estado") String estado,
+            @Param("severidad") String severidad
+    );
+
+    @Query(value = """
+        SELECT r FROM ReporteBache r
+        WHERE (:estado IS NULL OR r.estado = :estado)
+        AND (:severidad IS NULL OR r.severidad = :severidad)
+        ORDER BY r.createdAt DESC
+        """)
+    org.springframework.data.domain.Page<ReporteBache> findFiltered(
+            @Param("estado") EstadoReporte estado,
+            @Param("severidad") com.bachesrd.backend.entity.Severidad severidad,
+            org.springframework.data.domain.Pageable pageable
+    );
 }

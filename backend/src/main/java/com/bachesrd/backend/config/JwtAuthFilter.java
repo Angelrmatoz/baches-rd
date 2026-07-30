@@ -52,7 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (jwtService.isTokenValid(jwt, usuario.getEmail())) {
                     var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRol().name()));
                     var authToken = new UsernamePasswordAuthenticationToken(
-                            usuario,
+                            usuario.getEmail(),
                             null,
                             authorities
                     );

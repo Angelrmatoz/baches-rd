@@ -150,4 +150,22 @@ class ReporteServiceTest {
         assertThat(response).isNotNull();
         verify(reporteRepository, times(1)).save(bacheGuardado);
     }
+
+    @Test
+    @DisplayName("Obtener reportes filtrados por bounding box exitosamente")
+    void obtenerReportes_BoundingBox_Exitoso() {
+        when(reporteRepository.findInBoundingBox(18.4, -69.95, 18.5, -69.9, null, null))
+                .thenReturn(List.of(bacheGuardado));
+
+        org.springframework.data.domain.Page<ReporteResponse> page = reporteService.obtenerReportes(
+                18.4, 18.5, -69.95, -69.9,
+                null, null,
+                org.springframework.data.domain.PageRequest.of(0, 10),
+                usuarioCreador
+        );
+
+        assertThat(page).isNotNull();
+        assertThat(page.getContent()).hasSize(1);
+        assertThat(page.getContent().get(0).getId()).isEqualTo(bacheId);
+    }
 }

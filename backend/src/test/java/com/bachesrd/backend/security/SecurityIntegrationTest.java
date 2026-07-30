@@ -102,4 +102,18 @@ class SecurityIntegrationTest {
                         .param("longitud", "-69.9312117"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Permitir actualización de perfil PATCH /users/me con token válido (200 OK)")
+    void actualizarPerfil_ConToken_Retorna200() throws Exception {
+        com.bachesrd.backend.dto.UpdatePerfilRequest req = com.bachesrd.backend.dto.UpdatePerfilRequest.builder()
+                .nombre("Nuevo Nombre Test")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + ciudadanoToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk());
+    }
 }

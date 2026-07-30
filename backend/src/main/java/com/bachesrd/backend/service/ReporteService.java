@@ -71,6 +71,24 @@ public class ReporteService {
     }
 
     @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<ReporteResponse> obtenerReportes(
+            Double minLat, Double maxLat, Double minLon, Double maxLon,
+            EstadoReporte estado, Severidad severidad,
+            org.springframework.data.domain.Pageable pageable,
+            Usuario usuarioActual
+    ) {
+        if (minLat != null && maxLat != null && minLon != null && maxLon != null) {
+            String estadoStr = estado != null ? estado.name() : null;
+            String severidadStr = severidad != null ? severidad.name() : null;
+            List<ReporteBache> list = reporteRepository.findInBoundingBox(minLat, minLon, maxLat, maxLon, estadoStr, severidadStr);
+            List<ReporteResponse> content = list.stream().map(r -> mapToReporteResponse(r, usuarioActual)).toList();
+            return new org.springframework.data.domain.PageImpl<>(content, pageable, content.size());
+        }
+        org.springframework.data.domain.Page<ReporteBache> page = reporteRepository.findFiltered(estado, severidad, pageable);
+        return page.map(r -> mapToReporteResponse(r, usuarioActual));
+    }
+
+    @Transactional(readOnly = true)
     public ReporteResponse obtenerPorId(UUID id, Usuario usuarioActual) {
         ReporteBache reporte = reporteRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reporte no encontrado"));
