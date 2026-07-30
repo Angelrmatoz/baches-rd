@@ -27,13 +27,45 @@ baches-rd/
 
 ---
 
-## 🛠️ Tecnologías Clave
+## 🛠️ Tecnologías y Características Clave
 
-* **Diseño Estético:** Estilo visual **"Liquid Glass"** con Glassmorphism premium.
-* **Componentes UI:** Shadcn UI (Web) y `react-native-reusables` (Móvil).
-* **Base de Datos Geoespacial:** PostgreSQL 17 + PostGIS 3.5 con índices GIST (`Geometry(Point, 4326)`).
-* **Filtro Anti-Duplicados:** Algoritmo PostGIS `ST_DWithin` a 30m para evitar reportes colisionados.
+* **Diseño Estético:** Estilo visual **"Dark Glassmorphism"** con Glassmorphism premium, animaciones fluidas y prevención global de overscroll (`overscroll-behavior: none`).
+* **Componentes UI & Animaciones:** Shadcn UI + Lucide Icons + micro-animaciones personalizadas CSS (`animate-dropdown`, `animate-item-dismiss`, `animate-modal-pop`).
+* **Geolocalización & Autocompletado de Calles:** Geocodificación inteligente con OpenStreetMap Nominatim, sanitización de términos locales dominicanos (`esquina`, `frente a`) y validación estricta de direcciones reales en Santo Domingo.
+* **Direct Upload Múltiple a Cloudinary:** Carga de hasta 3 fotos por reporte (5 KB a 5 MB c/u) con validación estricta de tipo de archivo (exclusivo imágenes, cero videos).
+* **Gestión de Reportes:** Carrusel de fotos interactivo `1/X`, eliminación segura de reportes con limpieza de imágenes en Cloudinary y modal de confirmación `ConfirmDeleteDialog`.
+* **Centro de Notificaciones Interactivo:** Panel de notificaciones con estado de lectura, eliminación individual y descarte masivo animado.
+* **Base de Datos Geoespacial:** PostgreSQL 17 + PostGIS 3.5 con índices GiST (`Geometry(Point, 4326)`).
+* **Filtro Anti-Duplicados:** Algoritmo PostGIS `ST_DWithin` a 30m para evitar reportes colisionados (HTTP 409 Conflict).
 * **Seguridad & Excepciones:** Spring Security + JWT Tokens firmados + `GlobalExceptionHandler` (HTTP 400, 401, 403, 404, 409, 500).
+
+---
+
+## 🧪 Pruebas Automatizadas (Backend & Frontend)
+
+### Pruebas del Backend (Spring Boot + JUnit 5 + MockMvc):
+```powershell
+cd backend
+.\mvnw.cmd test
+```
+
+### Pruebas del Frontend (Vitest — 16 pruebas unitarias/ciberseguridad):
+```powershell
+cd frontend/apps/web
+pnpm test
+```
+
+### Pruebas E2E del Frontend (Playwright):
+```powershell
+cd frontend/apps/web
+pnpm test:e2e
+```
+
+### Compilación del Proyecto:
+```powershell
+cd frontend
+pnpm build
+```
 
 ---
 
@@ -64,3 +96,4 @@ pnpm dev
 
 ---
 Para más detalles técnicos y la lista completa de endpoints REST, consulta [AGENTS.md](file:///c:/Dev/baches-rd/AGENTS.md).
+

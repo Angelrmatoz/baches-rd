@@ -327,8 +327,31 @@ input::-ms-clear {
   animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes notificationDismiss {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 80px;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
 .animate-dropdown {
   animation: dropdownSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-item-dismiss {
+  animation: notificationDismiss 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden !important;
+  pointer-events: none;
 }
 
 /* Transiciones interactivas en botones e inputs */

@@ -47,11 +47,57 @@ export function Dashboard() {
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  // Modals state
+  // Modals & Popovers state
   const [isNewReportOpen, setIsNewReportOpen] = useState(false)
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(true)
+  const [dismissingIds, setDismissingIds] = useState<string[]>([])
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: 'n1',
+      title: '¡Reporte registrado!',
+      desc: 'Tu bache en Av. 27 de Febrero fue publicado exitosamente.',
+      time: 'Hace 5 min',
+      icon: MapPin,
+      color: 'text-primary bg-primary/15',
+    },
+    {
+      id: 'n2',
+      title: 'Nueva validación ciudadana',
+      desc: 'Un ciudadano ha verificado y apoyado tu reporte.',
+      time: 'Hace 25 min',
+      icon: CheckCircle2,
+      color: 'text-emerald-400 bg-emerald-400/15',
+    },
+    {
+      id: 'n3',
+      title: 'Actualización del Ayuntamiento',
+      desc: 'El estado del bache cambió a EN REPARACIÓN.',
+      time: 'Hace 2 horas',
+      icon: ShieldCheck,
+      color: 'text-blue-400 bg-blue-400/15',
+    },
+  ])
+
+  const handleDismissNotification = (id: string) => {
+    setDismissingIds((prev) => [...prev, id])
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((item) => item.id !== id))
+      setDismissingIds((prev) => prev.filter((itemId) => itemId !== id))
+    }, 240)
+  }
+
+  const handleClearAllNotifications = () => {
+    setDismissingIds(notifications.map((n) => n.id))
+    setTimeout(() => {
+      setNotifications([])
+      setDismissingIds([])
+    }, 240)
+  }
 
   const handleLocateUser = () => {
     if (!navigator.geolocation) {
@@ -174,13 +220,34 @@ export function Dashboard() {
 
         <div className="pointer-events-auto relative" onClick={(event) => event.stopPropagation()}>
           <div className="glass flex h-14 items-center gap-1 rounded-2xl p-2 shadow-glass md:h-16">
-            <Button variant="ghost" size="icon" aria-label="Notificaciones" className="relative rounded-xl">
-              <Bell />
-              <span className="absolute right-2 top-2 size-1.5 rounded-full bg-destructive" />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Notificaciones"
+              onClick={() => {
+                setNotificationsOpen((prev) => !prev)
+                setAccountOpen(false)
+                setHasUnreadNotifications(false)
+              }}
+              className="relative rounded-xl"
+            >
+              <Bell className="size-5" />
+              {hasUnreadNotifications && (
+                <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full border-2 border-card bg-destructive shadow-sm animate-pulse" />
+              )}
             </Button>
 
             {isAuthenticated && user ? (
-              <Button variant="ghost" className="rounded-xl gap-2" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-haspopup="menu">
+              <Button
+                variant="ghost"
+                className="rounded-xl gap-2"
+                onClick={() => {
+                  setAccountOpen((open) => !open)
+                  setNotificationsOpen(false)
+                }}
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+              >
                 {user.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.nombre} className="size-7 rounded-full border border-primary/30 object-cover" />
                 ) : (
@@ -202,6 +269,74 @@ export function Dashboard() {
               </div>
             )}
           </div>
+
+          {/* Notification Center Dropdown */}
+          {notificationsOpen && (
+            <div
+              role="menu"
+              className="absolute right-0 top-[calc(100%+0.5rem)] z-40 flex w-80 flex-col gap-2 rounded-2xl border bg-card/95 p-3 shadow-xl backdrop-blur-md animate-dropdown"
+            >
+              <div className="flex items-center justify-between border-b pb-2 px-1">
+                <div className="flex items-center gap-2">
+                  <Bell className="size-4 text-primary" />
+                  <p className="text-sm font-bold text-foreground">Notificaciones</p>
+                </div>
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearAllNotifications}
+                    className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    Borrar todas
+                  </button>
+                )}
+              </div>
+
+              {notifications.length > 0 ? (
+                <div className="flex max-h-72 flex-col gap-1.5 overflow-y-auto overflow-x-hidden pr-1">
+                  {notifications.map((n) => {
+                    const IconComp = n.icon
+                    const isDismissing = dismissingIds.includes(n.id)
+                    return (
+                      <div
+                        key={n.id}
+                        className={cn(
+                          'flex items-start gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-secondary/70',
+                          isDismissing && 'animate-item-dismiss'
+                        )}
+                      >
+                        <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl ${n.color}`}>
+                          <IconComp className="size-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-semibold text-foreground truncate">{n.title}</p>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[10px] text-muted-foreground">{n.time}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleDismissNotification(n.id)}
+                                className="rounded-lg p-0.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                                title="Eliminar notificación"
+                              >
+                                <X className="size-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{n.desc}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-6 text-center">
+                  <CheckCircle2 className="size-8 text-muted-foreground/50" />
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">No tienes notificaciones pendientes</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {accountOpen && user && (
             <div role="menu" className="absolute right-0 top-[calc(100%+0.5rem)] flex w-56 flex-col gap-1 rounded-2xl border bg-card/95 p-2 shadow-xl backdrop-blur-md animate-dropdown">

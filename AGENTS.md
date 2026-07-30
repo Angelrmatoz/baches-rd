@@ -56,17 +56,43 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
 | `GET` | `/api/v1/users/me/reports` | Autenticado | Mis reportes creados |
 | `GET` | `/swagger-ui.html` | Público | Documentación interactiva Swagger UI |
 
+## 🎨 Estado Actual del Frontend (Web SPA)
+
+### 1. Funcionalidades de Usuario & Geolocalización
+- **Modal de Creación de Reportes de Bache (`NewReportModal.tsx`):**
+  - **Pestaña 1 (Por nombre de calle):** Búsqueda interactiva con autocompletado en tiempo real utilizando la API OpenStreetMap Nominatim. Sanitizador de términos locales de RD (`esquina`, `esq`, `frente a`, `casi`) y validación estricta de existencia en Santo Domingo. Bloquea nombres de calle inventados (ej: `asdfasfa`).
+  - **Pestaña 2 (GPS / Coordenadas):** Geolocalización nativa mediante `navigator.geolocation` o inserción manual de latitud/longitud.
+- **Adjunto de Múltiples Fotos (Cloudinary Direct Upload):**
+  - Permite seleccionar hasta **3 fotos máximo** (5 KB - 5 MB cada una).
+  - Filtro estricto exclusivo para imágenes (`image/jpeg,image/png,image/webp,image/heic,image/heif`), bloqueando formatos de video o ejecutables.
+  - Subida directa en paralelo a Cloudinary tras recibir la firma HMAC SHA-1 del backend (`/api/v1/photos/signature`).
+
+### 2. UI/UX & Sistema de Diseño (Dark Glassmorphism)
+- **Modal de Detalle (`ReportDetailModal.tsx`):** Carrusel de fotos interactivo con controles (`ChevronLeft`, `ChevronRight`), contador de imágenes `1 / X`, badges de severidad/estado y mapa interactivo.
+- **Diálogo de Confirmación de Borrado (`ConfirmDeleteDialog.tsx`):** Modal oscuro personalizado con efecto de cristal traslúcido (`backdrop-blur-sm`, `glass`), reemplazando las ventanas nativas del navegador.
+- **Centro de Notificaciones (`Dashboard.tsx`):**
+  - Indicador de notificaciones no leídas posicionado en la esquina superior derecha (`top-1.5 right-1.5`) con pulso animado.
+  - Menú desplegable animado con `.animate-dropdown`.
+  - Eliminación individual de notificaciones y descarte masivo con animación de colapso limpia (`.animate-item-dismiss`) sin scrollbars temporales.
+- **Prevención de Overscroll Global:** Configuración de `overscroll-behavior: none` en `index.css` para prevenir el estiramiento o rebote (*rubber-banding*) en móviles y trackpads.
+
 ---
 
 ## 🧪 Suite de Pruebas Automatizadas
 
-La aplicación cuenta con una suite completa de **20 pruebas automatizadas** (unitarias, de integración y de ciberseguridad) ejecutadas con `BUILD SUCCESS`:
-- `UsuarioServiceTest`: Registro, BCrypt, cuentas inactivas y duplicados (5 pruebas).
-- `ReporteServiceTest`: Mapeo PostGIS JTS Point, anti-duplicados a 30m y permisos (4 pruebas).
-- `ValidacionServiceTest`: Contador de likes e idempotencia (3 pruebas).
-- `CloudinaryServiceTest`: Generación de firmas HMAC SHA-1 (1 prueba).
-- `SecurityIntegrationTest`: Ciberseguridad MockMvc, rechazo de firmas alteradas y control de acceso por roles (4 pruebas).
-- `AuthControllerTest` & `BackendApplicationTests`: Pruebas de contexto e inicio de sesión (3 pruebas).
+La plataforma cuenta con cobertura de pruebas automatizadas en Backend y Frontend:
+
+### 1. Backend (Spring Boot + JUnit 5 + MockMvc):
+- **20 Pruebas automatizadas:** `UsuarioServiceTest`, `ReporteServiceTest`, `ValidacionServiceTest`, `CloudinaryServiceTest`, `SecurityIntegrationTest`, `AuthControllerTest`.
+
+### 2. Frontend (React 19 + Vitest + Playwright):
+- **16 Pruebas Unitarias / Integración / Ciberseguridad (`pnpm test`):**
+  - `NewReportModal.test.tsx`: Geolocalización, sugerencias de calle, rechazo de direcciones inexistentes, límite de 3 fotos, peso máx 5 MB y bloqueo de videos.
+  - `ReportDetailModal.test.tsx`: Carrusel multi-foto, permisos de autor para eliminar y apertura de `ConfirmDeleteDialog`.
+  - `FrontendSecurity.test.ts`: Sanitización anti-XSS, validación de expiración de JWT y restricción de MIME-Types.
+  - `Dashboard.test.tsx` & `api.test.ts`: Autenticación Bearer Token y renderizado de métricas.
+- **Pruebas End-to-End (`pnpm test:e2e`):**
+  - `pothole-reporting-and-modals.spec.ts` & `auth-and-dashboard.spec.ts` ejecutados en navegadores Chromium/WebKit reales.
 
 ---
 
@@ -74,8 +100,9 @@ La aplicación cuenta con una suite completa de **20 pruebas automatizadas** (un
 
 ### Requisitos Locales:
 - **Java:** JDK 17 / JDK 25.
-- **Docker Desktop:** Para levantar el contenedor de PostgreSQL/PostGIS.
-- **Variables de Entorno en IntelliJ IDEA (Ver plantilla [.env.template](file:///c:/Dev/baches-rd/.env.template)):**
+- **Node.js:** v18+ & `pnpm` 8+.
+- **Docker Desktop:** Contenedor de PostgreSQL 17 / PostGIS 3.5 (`docker-compose.db.yml`).
+- **Variables de Entorno en IntelliJ IDEA (Ver [.env.template](file:///c:/Dev/baches-rd/.env.template)):**
   ```text
   JWT_SECRET=074142544c0e3e63e4c3c1ae7b76bd8852a40e3d3a45665b9393b59f85f6881e
   JWT_EXPIRATION=86400000
@@ -91,14 +118,27 @@ La aplicación cuenta con una suite completa de **20 pruebas automatizadas** (un
 docker compose -f backend/docker-compose.db.yml up -d
 ```
 
-#### 2. Ejecutar la Suite de Pruebas:
+#### 2. Ejecutar Pruebas Backend:
 ```powershell
 cd backend
 .\mvnw.cmd test
 ```
 
-#### 3. Iniciar Frontend (Web):
+#### 3. Ejecutar Pruebas Frontend (Unitarias & Ciberseguridad):
+```powershell
+cd frontend/apps/web
+pnpm test
+```
+
+#### 4. Ejecutar Pruebas Frontend (E2E Playwright):
+```powershell
+cd frontend/apps/web
+pnpm test:e2e
+```
+
+#### 5. Compilar Monorepo (Frontend):
 ```powershell
 cd frontend
-pnpm dev
+pnpm build
 ```
+
