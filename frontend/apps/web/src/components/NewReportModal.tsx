@@ -36,13 +36,47 @@ export function NewReportModal({
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isStreetVerified, setIsStreetVerified] = useState(false)
   const [severidad, setSeveridad] = useState<Severidad>('MEDIA')
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [geocodingLoading, setGeocodingLoading] = useState(false)
   const [geocodingSuccess, setGeocodingSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    const selected = Array.from(e.target.files || [])
+    if (selected.length === 0) return
+
+    if (files.length + selected.length > 3) {
+      setError('Solo se permite adjuntar un máximo de 3 fotos por reporte.')
+      return
+    }
+
+    const valid: File[] = []
+    for (const f of selected) {
+      if (!f.type.startsWith('image/')) {
+        setError(`El archivo "${f.name}" no es una foto válida. Solo se permiten imágenes.`)
+        return
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        setError(`La foto "${f.name}" pesa más de 5 MB. Por favor elige imágenes más livianas.`)
+        return
+      }
+      if (f.size < 5 * 1024) {
+        setError(`La foto "${f.name}" es demasiado pequeña (mínimo 5 KB).`)
+        return
+      }
+      valid.push(f)
+    }
+
+    setFiles((prev) => [...prev, ...valid].slice(0, 3))
+  }
+
+  const handleRemovePhoto = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const handleGetCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -172,11 +206,13 @@ export function NewReportModal({
         severidad,
       })
 
-      if (file && created.id) {
-        try {
-          await api.uploadImageToCloudinary(created.id, file, true)
-        } catch {
-          // Photo fail shouldn't break report creation
+      if (files.length > 0 && created.id) {
+        for (let i = 0; i < files.length; i++) {
+          try {
+            await api.uploadImageToCloudinary(created.id, files[i], i === 0)
+          } catch {
+            // Continue uploading remaining photos
+          }
         }
       }
 
@@ -379,22 +415,46 @@ export function NewReportModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground">Foto del daño</label>
-            <div className="mt-1 flex items-center gap-3">
-              <label className="flex h-11 cursor-pointer items-center gap-2 rounded-xl border bg-secondary/80 px-4 text-xs font-semibold transition-colors hover:bg-secondary">
-                <Camera className="size-4" />
-                <span>{file ? file.name : 'Seleccionar foto'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                />
-              </label>
-              {file && (
-                <Button type="button" variant="ghost" size="xs" onClick={() => setFile(null)} className="text-destructive">
-                  Quitar
-                </Button>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground">Fotos del daño (máximo 3, máx 5 MB c/u)</label>
+              <span className="text-[11px] font-semibold text-muted-foreground">{files.length}/3 fotos</span>
+            </div>
+            <div className="mt-1 flex flex-col gap-2">
+              {files.length < 3 && (
+                <label className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed bg-secondary/60 px-4 text-xs font-semibold transition-colors hover:bg-secondary">
+                  <Camera className="size-4 text-primary" />
+                  <span>{files.length === 0 ? 'Agregar fotos del daño' : 'Agregar otra foto'}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                    multiple
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                  />
+                </label>
+              )}
+
+              {files.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  {files.map((f, idx) => (
+                    <div key={idx} className="flex items-center justify-between rounded-xl border bg-secondary/50 px-3 py-2 text-xs">
+                      <span className="max-w-[240px] truncate font-medium text-foreground">{f.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground">{(f.size / (1024 * 1024)).toFixed(2)} MB</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemovePhoto(idx)}
+                          className="size-6 rounded-lg text-destructive hover:bg-destructive/10"
+                          title="Eliminar foto"
+                        >
+                          <X className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

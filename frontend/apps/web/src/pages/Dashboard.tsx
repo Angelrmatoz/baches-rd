@@ -149,7 +149,10 @@ export function Dashboard() {
         selectedReportId={selectedReportId}
         userLocation={userLocation}
         flyToCenter={flyToCenter}
-        onSelectReport={setSelectedReportId}
+        onSelectReport={(id) => {
+          setSelectedReportId(id)
+          setIsDetailOpen(true)
+        }}
       />
 
       <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-3 p-3 md:p-5">

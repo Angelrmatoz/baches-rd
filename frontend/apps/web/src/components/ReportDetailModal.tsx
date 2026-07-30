@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, Heart, MapPin, ShieldAlert, Trash2, User, X } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Heart, MapPin, ShieldAlert, Trash2, User, X } from 'lucide-react'
 import type { ReporteResponse, UsuarioResponse } from '@repo/shared-types'
 import { Button } from '@/components/ui/button'
 import { ConfirmDeleteDialog } from '@/components/ConfirmDeleteDialog'
@@ -24,11 +24,22 @@ export function ReportDetailModal({
 }: ReportDetailModalProps) {
   const [loadingLike, setLoadingLike] = useState(false)
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   if (!isOpen || !report) return null
 
-  const mainPhoto = report.fotos && report.fotos.length > 0 ? report.fotos[0].cloudinaryUrl : null
+  const fotos = report.fotos || []
+  const hasMultiple = fotos.length > 1
+  const currentPhoto = fotos[currentPhotoIndex] || fotos[0]
   const isOwnerOrAdmin = currentUser && (report.usuario?.id === currentUser.id || currentUser.rol === 'ADMIN')
+
+  const handlePrevPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev === 0 ? fotos.length - 1 : prev - 1))
+  }
+
+  const handleNextPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev === fotos.length - 1 ? 0 : prev + 1))
+  }
 
   const handleToggleValidation = async () => {
     try {
@@ -61,17 +72,47 @@ export function ReportDetailModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-backdrop">
       <div className="glass w-full max-w-lg overflow-hidden rounded-3xl border bg-card p-0 shadow-2xl animate-modal-pop">
-        {mainPhoto ? (
-          <div className="relative h-56 w-full bg-secondary">
-            <img src={mainPhoto} alt="Foto del bache" className="h-full w-full object-cover" />
+        {fotos.length > 0 ? (
+          <div className="relative h-60 w-full overflow-hidden bg-black/90">
+            <img
+              src={currentPhoto.cloudinaryUrl}
+              alt={`Foto ${currentPhotoIndex + 1} del bache`}
+              className="h-full w-full object-cover transition-all duration-300"
+            />
+
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="absolute right-3 top-3 rounded-xl bg-black/50 text-white hover:bg-black/70"
+              className="absolute right-3 top-3 z-10 rounded-xl bg-black/50 text-white backdrop-blur-md hover:bg-black/75"
             >
               <X className="size-5" />
             </Button>
+
+            {hasMultiple && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handlePrevPhoto}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/75"
+                >
+                  <ChevronLeft className="size-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleNextPhoto}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/75"
+                >
+                  <ChevronRight className="size-5" />
+                </Button>
+
+                <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                  <span>{currentPhotoIndex + 1} / {fotos.length}</span>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-between border-b p-5">
