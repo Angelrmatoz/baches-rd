@@ -464,7 +464,8 @@ export function Dashboard() {
           setSelectedReportId(null)
         }}
         onUpdate={fetchReports}
-        onDelete={() => {
+        onDelete={(id) => {
+          setReports((prev) => prev.filter((r) => r.id !== id))
           setIsDetailOpen(false)
           setSelectedReportId(null)
           fetchReports()

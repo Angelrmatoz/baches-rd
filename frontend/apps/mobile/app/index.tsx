@@ -611,7 +611,8 @@ export default function Dashboard() {
           setSelectedReportId(null);
         }}
         onUpdate={() => void fetchReports()}
-        onDelete={() => {
+        onDelete={(id) => {
+          setReports((prev) => prev.filter((r) => r.id !== id));
           setIsDetailOpen(false);
           setSelectedReportId(null);
           void fetchReports();
