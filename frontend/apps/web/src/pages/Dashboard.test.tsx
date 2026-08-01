@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Dashboard } from './Dashboard';
@@ -54,9 +54,11 @@ describe('Dashboard Component Integration Tests', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText('Baches RD')).toBeInTheDocument();
-    expect(screen.getByText('Estado de las calles')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-map')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Baches RD')).toBeInTheDocument();
+      expect(screen.getByText('Estado de las calles')).toBeInTheDocument();
+      expect(screen.getByTestId('mock-map')).toBeInTheDocument();
+    });
   });
 
   it('displays report metrics', async () => {
@@ -66,8 +68,10 @@ describe('Dashboard Component Integration Tests', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getAllByText('Reportes').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Validados').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Críticos').length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText('Reportes').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Validados').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Críticos').length).toBeGreaterThan(0);
+    });
   });
 });

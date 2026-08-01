@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test'
 
 test.describe('E2E Web - Pothole Reporting, Geocoding & Modal Flows', () => {
   test.beforeEach(async ({ page }) => {
-    // Intercept all API calls to return mock data (backend returns 401 for fake JWT)
-    await page.route('**/api/**', (route) => {
+    // Intercept API endpoints (**/api/v1/**) to return mock data without blocking Vite source code (api.ts)
+    await page.route('**/api/v1/**', (route) => {
       const url = route.request().url()
       if (url.includes('/users/me')) {
         route.fulfill({
@@ -32,8 +32,8 @@ test.describe('E2E Web - Pothole Reporting, Geocoding & Modal Flows', () => {
 
     // Inject mock authenticated user session in localStorage
     await page.addInitScript(() => {
-      localStorage.setItem('token', 'fake-e2e-jwt-token')
-      localStorage.setItem(
+      window.localStorage.setItem('token', 'fake-e2e-jwt-token')
+      window.localStorage.setItem(
         'user',
         JSON.stringify({
           id: 'user-e2e-123',
@@ -80,7 +80,7 @@ test.describe('E2E Web - Pothole Reporting, Geocoding & Modal Flows', () => {
 
   test('should display animated user dropdown menu on header click', async ({ page }) => {
     await page.goto('/')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
     await expect(page.getByText('Baches RD').first()).toBeVisible()
 
     const userMenuBtn = page.getByRole('button', { name: /Ángel/i })

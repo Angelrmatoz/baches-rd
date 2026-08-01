@@ -1,16 +1,28 @@
 package com.bachesrd.backend.service;
 
 import com.bachesrd.backend.dto.CloudinarySignatureResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class CloudinaryService {
+
+    private static final String DESTROY_URL = "https://api.cloudinary.com/v1_1/";
+    private static final String DESTROY_PATH = "/image/destroy";
+    private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
     @Value("${cloudinary.cloud-name:baches-rd}")
     private String cloudName;
@@ -68,21 +80,25 @@ public class CloudinaryService {
 
             String signature = DigestUtils.sha1Hex(toSign);
 
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-            String form = "public_id=" + java.net.URLEncoder.encode(publicId, java.nio.charset.StandardCharsets.UTF_8)
+            String form = "public_id=" + URLEncoder.encode(publicId, StandardCharsets.UTF_8)
                     + "&timestamp=" + timestamp
                     + "&api_key=" + apiKey
                     + "&signature=" + signature;
 
-            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("https://api.cloudinary.com/v1_1/" + cloudName + "/image/destroy"))
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(DESTROY_URL + cloudName + DESTROY_PATH))
                     .header("Content-Type", "application/x-www-form-urlencoded")
-                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(form))
+                    .timeout(Duration.ofSeconds(15))
+                    .POST(HttpRequest.BodyPublishers.ofString(form))
                     .build();
 
-            client.sendAsync(req, java.net.http.HttpResponse.BodyHandlers.discarding());
-        } catch (Exception ignored) {
-            // Non-blocking cleanup
+            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+
+            if (resp.statusCode() != 200 || !resp.body().contains("\"result\":\"ok\"")) {
+                log.warn("Cloudinary destroy falló para public_id={}: status={} body={}", publicId, resp.statusCode(), resp.body());
+            }
+        } catch (Exception e) {
+            log.warn("Cloudinary destroy lanzó excepción para public_id={}", publicId, e);
         }
     }
 }

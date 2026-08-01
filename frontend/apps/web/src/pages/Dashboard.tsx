@@ -155,13 +155,21 @@ export function Dashboard() {
     }
   }, [])
 
-  const fetchReports = async () => {
+  const fetchReports = async (newReportId?: string | unknown) => {
     try {
       setLoading(true)
       const data = await api.getReports({ size: 50 })
-      setReports(data.content || [])
-      if (data.content && data.content.length > 0) {
-        setSelectedReportId(data.content[0].id)
+      const fetched = data.content || []
+      setReports(fetched)
+
+      if (typeof newReportId === 'string' && newReportId) {
+        const target = fetched.find((r) => r.id === newReportId)
+        if (target) {
+          setSelectedReportId(target.id)
+          setFlyToCenter([target.latitud, target.longitud])
+        }
+      } else if (fetched.length > 0 && !selectedReportId) {
+        setSelectedReportId(fetched[0].id)
       }
     } catch {
       // Fallback if DB empty or error
@@ -216,7 +224,7 @@ export function Dashboard() {
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <MapPin aria-hidden="true" />
           </div>
-          <div className="hidden sm:block">
+          <div className="block">
             <p className="text-base font-bold tracking-tight">Baches RD</p>
             <p className="text-xs text-muted-foreground">Calles mejores, entre todos.</p>
           </div>
@@ -265,7 +273,7 @@ export function Dashboard() {
                     {getInitials(user.nombre)}
                   </span>
                 )}
-                <span className="hidden sm:inline">{user.nombre.split(' ')[0]}</span>
+                <span className="inline">{user.nombre.split(' ')[0]}</span>
                 <ChevronDown data-icon="inline-end" className={cn('hidden transition-transform sm:block', accountOpen && 'rotate-180')} />
               </Button>
             ) : (
@@ -387,7 +395,7 @@ export function Dashboard() {
 
         <div className="mt-5 flex items-center justify-between gap-2">
           <p className="text-sm font-semibold">Vista del mapa</p>
-          <Button variant="ghost" size="sm" onClick={fetchReports}><SlidersHorizontal data-icon="inline-start" />Actualizar</Button>
+          <Button variant="ghost" size="sm" onClick={() => void fetchReports()}><SlidersHorizontal data-icon="inline-start" />Actualizar</Button>
         </div>
         <div className="mt-2 flex gap-1 rounded-xl bg-secondary/70 p-1">
           {filters.map((filter) => (
@@ -435,7 +443,7 @@ export function Dashboard() {
       <NewReportModal
         isOpen={isNewReportOpen}
         onClose={() => setIsNewReportOpen(false)}
-        onSuccess={fetchReports}
+        onSuccess={(newId) => fetchReports(newId)}
         onDuplicate={(id) => {
           if (id) setSelectedReportId(id)
           setIsDuplicateDialogOpen(true)

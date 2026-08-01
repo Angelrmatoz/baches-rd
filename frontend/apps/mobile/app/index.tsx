@@ -104,19 +104,12 @@ export default function Dashboard() {
   };
 
   const handleDismissNotification = (id: string) => {
-    setDismissingIds((prev) => [...prev, id]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((item) => item.id !== id));
-      setDismissingIds((prev) => prev.filter((itemId) => itemId !== id));
-    }, 240);
+    setNotifications((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleClearAllNotifications = () => {
-    setDismissingIds(notifications.map((n) => n.id));
-    setTimeout(() => {
-      setNotifications([]);
-      setDismissingIds([]);
-    }, 240);
+    setNotifications([]);
+    setDismissingIds([]);
   };
 
   const handleLocateUser = async () => {
@@ -199,13 +192,22 @@ export default function Dashboard() {
     restoreLocation();
   }, []);
 
-  const fetchReports = async () => {
+  const fetchReports = async (newReportId?: string) => {
     try {
       setLoading(true);
       const data = await api.getReports({ size: 50 });
-      setReports(data.content || []);
-      if (data.content && data.content.length > 0) {
-        setSelectedReportId(data.content[0].id);
+      const fetched = data.content || [];
+      setReports(fetched);
+
+      if (newReportId) {
+        const target = fetched.find((r) => r.id === newReportId);
+        if (target) {
+          setSelectedReportId(target.id);
+          setFlyToCenter([target.latitud, target.longitud]);
+          showToast('¡Bache publicado exitosamente en el mapa!');
+        }
+      } else if (fetched.length > 0 && !selectedReportId) {
+        setSelectedReportId(fetched[0].id);
       }
     } catch {
       setReports([]);
@@ -588,7 +590,7 @@ export default function Dashboard() {
       <NewReportModal
         isOpen={isNewReportOpen}
         onClose={() => setIsNewReportOpen(false)}
-        onSuccess={() => void fetchReports()}
+        onSuccess={(newId) => void fetchReports(newId)}
         onDuplicate={(id) => {
           if (id) setSelectedReportId(id);
           setIsDuplicateDialogOpen(true);

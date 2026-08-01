@@ -59,7 +59,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     throw error;
   }
 
-  if (response.status === 204 || response.headers.get('content-length') === '0') {
+  if (response.status === 204 || response.headers?.get?.('content-length') === '0') {
     return {} as T;
   }
 

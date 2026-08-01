@@ -70,13 +70,21 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
   - Filtro estricto exclusivo para imágenes (`image/jpeg,image/png,image/webp,image/heic,image/heif`), bloqueando formatos de video o ejecutables.
   - Subida directa en paralelo a Cloudinary tras recibir la firma HMAC SHA-1 del backend (`/api/v1/photos/signature`).
 
-### 2. UI/UX & Sistema de Diseño (Dark Glassmorphism)
-- **Modal de Detalle (`ReportDetailModal.tsx`):** Carrusel de fotos interactivo con controles (`ChevronLeft`, `ChevronRight`), contador de imágenes `1 / X`, badges de severidad/estado y mapa interactivo. **Modo edición:** inputs editables para descripción, severidad y dirección; botones para agregar/borrar fotos individuales; banner de error si excede límite de 3 fotos; reset de input file tras selección.
+### 2. UI/UX & Sistema de Diseño (Dark Glassmorphism & Paridad Web/Mobile)
+- **Modal de Detalle (`ReportDetailModal.tsx`):** Carrusel de fotos interactivo con controles (`ChevronLeft`, `ChevronRight`), contador de imágenes `1 / X`, badges de severidad/estado y mapa interactivo. **Sincronización `useEffect`:** Sincroniza fotos del reporte en tiempo real al subir nuevas imágenes a Cloudinary. **Layout responsivo anti-overlap:** Disposición vertical limpia para datos de reporte y coordenadas, más 2 filas de acciones con botón prominente *"Validar este bache"*.
 - **Diálogo de Confirmación de Borrado (`ConfirmDeleteDialog.tsx`):** Modal oscuro personalizado con efecto de cristal traslúcido (`backdrop-blur-sm`, `glass`), reemplazando las ventanas nativas del navegador.
-- **Centro de Notificaciones (`Dashboard.tsx`):**
+- **Centro de Notificaciones & Menús Desplegables:**
   - Indicador de notificaciones no leídas posicionado en la esquina superior derecha (`top-1.5 right-1.5`) con pulso animado.
-  - Menú desplegable animado con `.animate-dropdown`.
-  - Eliminación individual de notificaciones y descarte masivo con animación de colapso limpia (`.animate-item-dismiss`) sin scrollbars temporales.
+  - Renderizado condicional estricto con animación `.animate-dropdown` en Web y `Animated.View` nativo en Mobile, eliminando fantasmas de desenfoque (`backdrop-blur`).
+  - Eliminación individual de notificaciones y descarte masivo con animación de colapso limpia (`.animate-item-dismiss`).
+  - Cierre automático al tocar en cualquier punto exterior del mapa mediante propagación de eventos (`stopPropagation`).
+- **Control de Peticiones & Rate-Limiting (Debounce 450ms):**
+  - Autocompletado de calles debouced a 450ms con cabecera `User-Agent: BachesRD-App/1.0`. Previene errores HTTP `429 (Too Many Requests)` y bloqueos de CORS en OpenStreetMap Nominatim.
+  - Fallback automático y transparente a coordenadas por defecto de Santo Domingo (`18.4861, -69.9312`) si la API de geolocalización de OpenStreetMap está saturada o no responde.
+- **Optimización React Native Web & Limpieza de Deprecaciones:**
+  - Estilos inline explícitos para `borderRadius: 20`, `padding: 16` y `maxWidth` en `Animated.View`, resolviendo esquinas cuadradas a 90° y recortes en los bordes.
+  - Evaluación booleana estricta `{!!avatarUrl && ...}` y `{!!error && ...}` evitando errores `Unexpected text node: . A text node cannot be a child of a <View>`.
+  - Actualización de APIs deprecadas de React Native a estándares modernos: `style={{ pointerEvents: '...' }}`, `Platform.OS !== 'web'` para `useNativeDriver`, y helpers de sombra cross-platform (`boxShadow` en web).
 - **Prevención de Overscroll Global:** Configuración de `overscroll-behavior: none` en `index.css` para prevenir el estiramiento o rebote (*rubber-banding*) en móviles y trackpads.
 
 ---

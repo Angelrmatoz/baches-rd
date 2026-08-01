@@ -7,7 +7,7 @@ import { api } from '@/services/api'
 interface NewReportModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (newReportId?: string) => void
   onDuplicate: (existingReportId: string) => void
   defaultLat?: number
   defaultLng?: number
@@ -197,10 +197,13 @@ export function NewReportModal({
         if (results && results.length > 0) {
           handleSelectSuggestion(results[0])
           return true
+        } else {
+          setError(`La calle "${direccionAprox}" no se encontró en el mapa de Santo Domingo.`)
+          return false
         }
       }
 
-      // Fallback to Santo Domingo coordinates if no exact match or rate limited
+      // Fallback to Santo Domingo coordinates if rate limited or HTTP error
       setLatitud(18.4861)
       setLongitud(-69.9312)
       setIsStreetVerified(true)
@@ -254,7 +257,7 @@ export function NewReportModal({
         }
       }
 
-      onSuccess()
+      onSuccess(created.id)
       onClose()
     } catch (err: unknown) {
       const status = (err as { status?: number }).status

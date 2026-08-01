@@ -63,9 +63,14 @@ pnpm format
    * El cliente pide firma criptográfica al backend (`GET /photos/signature`).
    * El cliente sube la foto directamente a la API de Cloudinary.
    * El cliente envía la URL e ID al backend para registrarla.
-4. **Modo Edición en `ReportDetailModal.tsx`:**
+4. **Modo Edición & Sincronización en `ReportDetailModal.tsx`:**
    * Inputs editables para descripción, severidad y dirección.
-   * Botón "Agregar foto" y equis (X) para borrar fotos individuales.
-   * Banner de error si se excede límite de 3 fotos.
-   * Botón "Guardar Cambios" llama a `PATCH /api/v1/reports/{id}`.
-   * Input file se resetea tras cada selección.
+   * Sincronización en tiempo real vía `useEffect` para reflejar fotos inmediatamente tras su carga.
+   * Botón "Agregar foto" y basurero (trash) para borrar fotos individuales.
+   * Layout responsivo anti-overlap con botón prominente de validación.
+5. **Autocompletado de Calles & Debounce (450ms):**
+   * Peticiones a OpenStreetMap Nominatim debouced a 450ms con cabecera `User-Agent: BachesRD-App/1.0`.
+   * Previene rate-limiting HTTP `429` y bloqueos de CORS, con asignación de coordenadas de contingencia en Santo Domingo (`18.4861, -69.9312`).
+6. **Estándares Cross-Platform (React Native Web):**
+   * Estilos inline con `borderRadius: 20`, `padding: 16` y `maxWidth` para evitar recortes en bordes y esquinas a 90°.
+   * Evaluación booleana estricta `{!!val && ...}` evitando errores `Unexpected text node: . A text node cannot be a child of a <View>`.
