@@ -863,6 +863,7 @@ GitHub.sublime-settings
 backup/
 *.bak
 lib/
+!frontend/apps/web/src/lib/
 
 # Application bundle for Mac OS
 *.app/
