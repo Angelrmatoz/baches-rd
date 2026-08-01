@@ -22,7 +22,7 @@ public class CloudinaryService {
 
     private static final String DESTROY_URL = "https://api.cloudinary.com/v1_1/";
     private static final String DESTROY_PATH = "/image/destroy";
-    private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+    HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
     @Value("${cloudinary.cloud-name:baches-rd}")
     private String cloudName;

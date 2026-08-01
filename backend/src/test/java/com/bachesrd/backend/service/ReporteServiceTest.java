@@ -146,6 +146,49 @@ class ReporteServiceTest {
     }
 
     @Test
+    @DisplayName("Eliminar reporte borra todas sus fotos de Cloudinary")
+    void eliminarReporte_Exitoso_EliminaFotosDeCloudinary() {
+        when(reporteRepository.findById(bacheId)).thenReturn(Optional.of(bacheGuardado));
+        FotoReporte foto1 = FotoReporte.builder()
+                .id(UUID.randomUUID())
+                .reporte(bacheGuardado)
+                .cloudinaryUrl("https://res.cloudinary.com/demo/image/upload/v1/foto1.jpg")
+                .cloudinaryPublicId("foto1")
+                .build();
+        FotoReporte foto2 = FotoReporte.builder()
+                .id(UUID.randomUUID())
+                .reporte(bacheGuardado)
+                .cloudinaryUrl("https://res.cloudinary.com/demo/image/upload/v1/foto2.jpg")
+                .cloudinaryPublicId("foto2")
+                .build();
+        when(fotoRepository.findByReporteIdOrderByCreatedAtAsc(bacheId)).thenReturn(List.of(foto1, foto2));
+
+        reporteService.eliminarReporte(bacheId, usuarioCreador);
+
+        verify(cloudinaryService).eliminarImagen("foto1");
+        verify(cloudinaryService).eliminarImagen("foto2");
+        verify(reporteRepository).delete(bacheGuardado);
+    }
+
+    @Test
+    @DisplayName("Eliminar foto de reporte borra su imagen de Cloudinary")
+    void eliminarFoto_Exitoso_EliminaCloudinary() {
+        UUID fotoId = UUID.randomUUID();
+        FotoReporte foto = FotoReporte.builder()
+                .id(fotoId)
+                .reporte(bacheGuardado)
+                .cloudinaryUrl("https://res.cloudinary.com/demo/image/upload/v1/bache.jpg")
+                .cloudinaryPublicId("bache")
+                .build();
+        when(fotoRepository.findById(fotoId)).thenReturn(Optional.of(foto));
+
+        reporteService.eliminarFoto(bacheId, fotoId, usuarioCreador);
+
+        verify(cloudinaryService).eliminarImagen("bache");
+        verify(fotoRepository).delete(foto);
+    }
+
+    @Test
     @DisplayName("Permite cambiar el estado del bache a un Administrador")
     void cambiarEstado_AdminExitoso() {
         Usuario admin = Usuario.builder().id(UUID.randomUUID()).rol(Rol.ADMIN).build();

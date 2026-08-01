@@ -1,7 +1,20 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ReportDetailModal } from './ReportDetailModal'
+import { api } from '@/services/api'
 import type { ReporteResponse, UsuarioResponse } from '@repo/shared-types'
+
+vi.mock('@/services/api', () => ({
+  api: {
+    deletePhoto: vi.fn().mockResolvedValue(undefined),
+    deleteReport: vi.fn().mockResolvedValue(undefined),
+    updateReport: vi.fn().mockResolvedValue(undefined),
+    validateReport: vi.fn().mockResolvedValue(undefined),
+    removeValidation: vi.fn().mockResolvedValue(undefined),
+    getReportById: vi.fn().mockResolvedValue(undefined),
+    uploadImageToCloudinary: vi.fn().mockResolvedValue(undefined),
+  },
+}))
 
 const mockUser: UsuarioResponse = {
   id: 'user-123',
@@ -72,6 +85,17 @@ describe('ReportDetailModal - Unit & Integration Tests', () => {
 
     await waitFor(() => {
       expect(screen.getByText('¿Eliminar reporte de bache?')).toBeInTheDocument()
+    })
+  })
+
+  it('calls api.deletePhoto with report and photo id when deleting a photo', async () => {
+    render(<ReportDetailModal {...defaultProps} />)
+
+    fireEvent.click(screen.getByText('Editar'))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar foto' }))
+
+    await waitFor(() => {
+      expect(api.deletePhoto).toHaveBeenCalledWith('report-111', 'f1')
     })
   })
 })

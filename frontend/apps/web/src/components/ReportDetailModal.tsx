@@ -175,6 +175,7 @@ export function ReportDetailModal({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleDeletePhoto(currentPhoto.id)}
+                aria-label="Eliminar foto"
                 className="absolute left-3 top-3 z-10 rounded-xl bg-destructive/70 text-white backdrop-blur-md hover:bg-destructive"
               >
                 <Trash2 className="size-5" />
