@@ -67,8 +67,20 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Instalar browsers Playwright
         run: pnpm --filter web exec playwright install --with-deps chromium webkit
-      - name: Tests e2e (chromium + webkit)
-        run: pnpm --filter web test:e2e
+      - name: Build + servidor preview + tests e2e (chromium + webkit)
+        env:
+          CI: ''
+        run: |
+          pnpm --filter web build
+          pnpm --filter web exec vite preview --port 5173 --strictPort &
+          PREVIEW_PID=$!
+          trap "kill $PREVIEW_PID" EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5173 >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:5173 >/dev/null || { echo "El servidor preview no arrancó a tiempo"; exit 1; }
+          pnpm --filter web test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
