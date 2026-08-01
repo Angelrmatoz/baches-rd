@@ -11,6 +11,7 @@ const reactPath = path.dirname(require.resolve("react/package.json"));
 const reactDomPath = path.dirname(require.resolve("react-dom/package.json"));
 
 export default defineConfig({
+  root: path.resolve(__dirname),
   plugins: [react(), tailwindcss()],
   resolve: {
     dedupe: ["react", "react-dom"],
