@@ -43,6 +43,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: Tests vitest (unitarios + integración)
         run: pnpm --filter web test
@@ -62,6 +63,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: Instalar browsers Playwright
         run: pnpm --filter web exec playwright install --with-deps chromium webkit
