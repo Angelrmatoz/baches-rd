@@ -53,6 +53,18 @@ pnpm lint
 pnpm format
 ```
 
+### Pruebas automatizadas
+```bash
+# Unitarias e integración (Vitest + React Testing Library) desde frontend/
+pnpm --filter web test
+
+# E2E (Playwright, Chromium + WebKit) desde frontend/apps/web
+cd apps/web
+pnpm test:e2e
+```
+
+> **En CI (GitHub Actions):** los jobs `frontend` (Vitest) y `frontend-e2e` (Playwright) validan el dashboard web en cada push a `main`. Los specs E2E mockean la API (`page.route('**/api/v1/**')`), así que no requieren backend ni base de datos en CI.
+
 ---
 
 ## ⚠️ Notas de Desarrollo
@@ -63,3 +75,14 @@ pnpm format
    * El cliente pide firma criptográfica al backend (`GET /photos/signature`).
    * El cliente sube la foto directamente a la API de Cloudinary.
    * El cliente envía la URL e ID al backend para registrarla.
+4. **Modo Edición & Sincronización en `ReportDetailModal.tsx`:**
+   * Inputs editables para descripción, severidad y dirección.
+   * Sincronización en tiempo real vía `useEffect` para reflejar fotos inmediatamente tras su carga.
+   * Botón "Agregar foto" y basurero (trash) para borrar fotos individuales.
+   * Layout responsivo anti-overlap con botón prominente de validación.
+5. **Autocompletado de Calles & Debounce (450ms):**
+   * Peticiones a OpenStreetMap Nominatim debouced a 450ms con cabecera `User-Agent: BachesRD-App/1.0`.
+   * Previene rate-limiting HTTP `429` y bloqueos de CORS, con asignación de coordenadas de contingencia en Santo Domingo (`18.4861, -69.9312`).
+6. **Estándares Cross-Platform (React Native Web):**
+   * Estilos inline con `borderRadius: 20`, `padding: 16` y `maxWidth` para evitar recortes en bordes y esquinas a 90°.
+   * Evaluación booleana estricta `{!!val && ...}` evitando errores `Unexpected text node: . A text node cannot be a child of a <View>`.

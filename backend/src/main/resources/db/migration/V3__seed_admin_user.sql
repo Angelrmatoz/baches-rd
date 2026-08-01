@@ -1,0 +1,2 @@
+-- Admin user seeding moved to CommandLineRunner in BackendApplication.java.
+-- Uses PasswordEncoder for proper BCrypt hashing.

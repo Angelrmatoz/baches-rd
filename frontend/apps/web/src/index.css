@@ -155,6 +155,12 @@
   }
 }
 
+html, body, #root {
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -260,8 +266,101 @@
 .civic-marker--verified > span { background: var(--primary-foreground); }
 .civic-marker--active { transform: scale(1.08); box-shadow: 0 0 0 7px color-mix(in oklab, var(--primary), transparent 72%), 0 8px 24px oklch(0.18 0.03 230 / 36%); }
 
+/* Pulso animado para la ubicación GPS del usuario */
+.user-location-pulse {
+  display: block;
+  width: 22px;
+  height: 22px;
+  background-color: oklch(0.6 0.24 245);
+  border: 3.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  animation: pulse-ring 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes pulse-ring {
+  to {
+    box-shadow: 0 0 0 18px rgba(59, 130, 246, 0);
+  }
+}
+
 .leaflet-control-zoom {
   display: none;
+}
+
+/* Ocultar el botón nativo de revelar contraseña del navegador (Edge/IE) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* Micro-animaciones suaves para Modales, Toasts e Interacciones Premium */
+@keyframes modalBackdropFade {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(8px); }
+}
+
+@keyframes modalContentPop {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes toastSlideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes dropdownSlideDown {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-backdrop {
+  animation: modalBackdropFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-pop {
+  animation: modalContentPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-slide {
+  animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes notificationDismiss {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    max-height: 80px;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+.animate-dropdown {
+  animation: dropdownSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-item-dismiss {
+  animation: notificationDismiss 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden !important;
+  pointer-events: none;
+}
+
+/* Transiciones interactivas en botones e inputs */
+button, input, select, a {
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 @media (prefers-reduced-transparency: reduce) {

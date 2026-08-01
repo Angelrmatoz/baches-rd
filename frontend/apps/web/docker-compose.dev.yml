@@ -1,0 +1,22 @@
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      target: dev
+    container_name: baches-web-dev
+    ports:
+      - "5173:5173"
+    environment:
+      # Backend local (Spring Boot en IntelliJ) o backend:8080 si corre en la misma red Docker
+      VITE_DEV_PROXY_TARGET: "http://host.docker.internal:8080"
+    volumes:
+      # Hot-reload selectivo: solo el source del web se monta del host.
+      # packages NO se monta: sus node_modules son symlinks de pnpm-Windows que
+      # rompen la resolución de tsconfig del scan de Vite dentro del container
+      # Linux (error "Tsconfig not found"). Cambios en packages/* requieren rebuild.
+      - ../../apps/web/src:/app/apps/web/src
+      - ../../apps/web/public:/app/apps/web/public
+      # Cambios en package.json / vite.config.ts / index.html requieren rebuild
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -9,3 +9,7 @@ gen
 
 #Node.js
 node_modules/
+
+# Playwright Test Artifacts
+playwright-report/
+tetst-results/

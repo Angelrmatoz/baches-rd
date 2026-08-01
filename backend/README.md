@@ -1,90 +1,67 @@
-# Baches RD — Backend (Spring Boot)
+# Baches RD — Backend (Spring Boot API)
 
-Este directorio contiene el backend de alto rendimiento de Baches RD, implementado con **Spring Boot**, **Java 25**, **Hibernate Spatial (PostGIS)** y soporte de compilación nativa con **GraalVM**.
-
----
-
-## 🛠️ Tecnologías y Características
-
-* **Lenguaje & Framework:** Java 25 + Spring Boot.
-* **Seguridad:** Spring Security con filtros JWT y encriptación bcrypt para contraseñas de usuarios.
-* **Persistencia:** Spring Data JPA + Hibernate Spatial para interactuar con datos geoespaciales.
-* **Migraciones de Base de Datos:** Flyway o Liquibase.
-* **Compilación Nativa:** Configuración multi-stage en Dockerfile para GraalVM, reduciendo drásticamente el uso de memoria RAM y el tiempo de arranque.
+Backend de alto rendimiento de Baches RD, implementado con **Spring Boot 3.4 / 4**, **Java 17 / 25**, **PostGIS 3.5**, **Flyway** y autenticación basada en **JWT**.
 
 ---
 
-## 🗄️ Modelo de Datos Geoespacial y Lógica Anti-Duplicados
+## 🛠️ Tecnologías y Arquitectura
 
-El motor principal usa **PostgreSQL 15+ con la extensión PostGIS** activa.
-Las coordenadas geográficas de los baches se almacenan bajo el tipo de datos `GEOMETRY(POINT, 4326)`.
-
-### Lógica Geoespacial Anti-Duplicados
-Para evitar reportes basura e incentivar la validación social, el backend ejecuta una consulta de cercanía espacial en base a un radio configurable de 30 metros:
-```sql
-SELECT id, descripcion, total_validaciones
-FROM reportes_baches
-WHERE ST_DWithin(
-  coordenadas::geography,
-  ST_SetSRID(ST_MakePoint(:longitud, :latitud), 4326)::geography,
-  30  -- metros
-)
-AND estado != 'resuelto'
-LIMIT 5;
-```
-Si se detecta una colisión en este radio, `POST /reports` rechaza la solicitud arrojando una excepción capturada como **HTTP 409 Conflict** y devuelve el `existing_report_id` para que el cliente redirija al usuario a validarlo con un "like".
+* **Lenguaje & Framework:** Java 17/25 + Spring Boot.
+* **Seguridad:** Spring Security + filtro `JwtAuthFilter` con hash BCrypt para contraseñas.
+* **Persistencia Geoespacial:** Spring Data JPA + PostgreSQL 17 + PostGIS 3.5 + `org.locationtech.jts`.
+* **Migraciones de Base de Datos:** Flyway (`src/main/resources/db/migration`).
+* **Documentación OpenAPI:** Swagger UI en `/swagger-ui.html`.
 
 ---
 
-## 🌐 Resumen de la API REST
+## 🗄️ Modelo de Datos Geoespacial
 
-**Base URL:** `http://localhost:8080/api/v1`
-
-### 🔑 Autenticación (`/auth`)
-* `POST /auth/register` - Registro público.
-* `POST /auth/login` - Inicio de sesión (devuelve JWT + Refresh Token).
-* `POST /auth/refresh` - Renovación de tokens.
-* `POST /auth/logout` - Revocación de sesión.
-
-### 📍 Reportes de Baches (`/reports`)
-* `GET /reports` - Listar reportes (paginación + filtros bbox).
-* `GET /reports/nearby?latitud=X&longitud=Y` - Reportes cercanos por PostGIS.
-* `GET /reports/:id` - Detalles de reporte (con fotos y validaciones).
-* `POST /reports` - Crear reporte (bloqueado por filtro anti-duplicados 30m).
-* `PATCH /reports/:id/status` - Cambiar estado (Admin).
-* `DELETE /reports/:id` - Soft-delete de reporte (Autor u Admin).
-
-### 📸 Flujo Direct Upload a Cloudinary (`/photos`)
-* `GET /photos/signature` - Genera firma criptográfica Signed Upload de Cloudinary. El backend nunca procesa el archivo físico pesando en el ancho de banda del servidor.
-* `POST /reports/:id/photos` - Registra `cloudinary_url` y `public_id` de la imagen subida directamente por el cliente.
-* `DELETE /reports/:id/photos/:photoId` - Elimina foto de la BD y la API de Cloudinary.
-
-### 👍 Validaciones/Likes (`/reports/:id/validate`)
-* `POST /reports/:id/validate` - Validar (añadir like). Restricción UNIQUE en BD impide duplicados.
-* `DELETE /reports/:id/validate` - Quitar validación.
-* `GET /reports/:id/validators` - Listar usuarios que validaron.
+El motor usa **PostgreSQL 17 con extensión PostGIS 3.5** activa.
+Las coordenadas de los baches se almacenan bajo el tipo de datos `GEOMETRY(POINT, 4326)`.
 
 ---
 
-## 🚀 Desarrollo Local
+## 🔑 Variables de Entorno (Configuradas en IntelliJ IDEA)
 
-### 1. Levantar PostgreSQL + PostGIS (Docker)
-Asegúrate de tener Docker activo y ejecuta:
-```bash
-cd docker
-docker compose up -d
-```
-El archivo `init.sql` inicializará automáticamente la extensión de PostGIS en la base de datos `baches_db`.
+| Variable | Descripción | Ejemplo |
+| --- | --- | --- |
+| `JWT_SECRET` | Clave secreta de firma HMAC de 256 bits | `074142544c0e3e63e4...` |
+| `JWT_EXPIRATION` | Tiempo de expiración del token en ms | `86400000` (24 horas) |
+| `CLOUDINARY_CLOUD_NAME` | Nombre de cuenta en Cloudinary | `baches-rd` |
+| `CLOUDINARY_API_KEY` | Clave API de Cloudinary | `1234567890` |
+| `CLOUDINARY_API_SECRET` | Secreto API de Cloudinary | `secret_cloudinary_key_baches` |
 
-### 2. Compilar e Iniciar la Aplicación
-Usa Maven para levantar el servidor de desarrollo:
-```bash
-mvn spring-boot:run
+---
+
+## 🧪 Pruebas Automatizadas
+
+El backend incluye una suite de **38 pruebas automatizadas** (unitarias, de integración y ciberseguridad):
+
+```powershell
+cd backend
+.\mvnw.cmd test
 ```
 
-### 3. Compilar Imagen Nativa (GraalVM)
-Para compilar a imagen nativa optimizada (requiere GraalVM instalado localmente o a través de Docker):
-```bash
-mvn -Pnative native:compile
-```
-O compila la imagen directamente usando el Dockerfile multi-stage.
+> **En CI (GitHub Actions):** el job `backend` ejecuta solo los unit tests sin base de datos, excluyendo las 3 clases `@SpringBootTest` que requieren PostgreSQL (`BackendApplicationTests`, `SecurityIntegrationTest`, `AuthControllerTest`). Esas se corren localmente contra `docker-compose.db.yml`.
+
+---
+
+## 🌐 Endpoints REST (`/api/v1`)
+
+* `POST /api/v1/auth/register` - Registro público.
+* `POST /api/v1/auth/login` - Inicio de sesión JWT.
+* `POST /api/v1/reports` - Crear bache (anti-duplicados a 30m → HTTP 409).
+* `GET /api/v1/reports/nearby` - Baches cercanos para el mapa.
+* `GET /api/v1/reports/{id}` - Detalle de bache.
+* `PATCH /api/v1/reports/{id}` - Editar descripción, severidad, dirección (Creador/Admin).
+* `PATCH /api/v1/reports/{id}/status` - Cambiar estado (Admin).
+* `DELETE /api/v1/reports/{id}` - Eliminar bache (con limpieza Cloudinary).
+* `POST /api/v1/reports/{id}/validate` - Dar confirmación/like.
+* `DELETE /api/v1/reports/{id}/validate` - Quitar confirmación.
+* `GET /api/v1/reports/{id}/validators` - Listar validadores.
+* `GET /api/v1/photos/signature` - Firma HMAC SHA-1 para Direct Upload a Cloudinary.
+* `POST /api/v1/reports/{id}/photos` - Registrar foto.
+* `DELETE /api/v1/reports/{id}/photos/{photoId}` - Eliminar foto (con limpieza Cloudinary).
+* `GET /api/v1/users/me` - Perfil del usuario actual.
+* `PATCH /api/v1/users/me` - Actualizar perfil (nombre, email, avatar). Al cambiar/borrar avatar, elimina imagen anterior de Cloudinary.
+* `GET /api/v1/users/me/reports` - Reportes del usuario actual.

@@ -863,6 +863,7 @@ GitHub.sublime-settings
 backup/
 *.bak
 lib/
+!frontend/apps/web/src/lib/
 
 # Application bundle for Mac OS
 *.app/
@@ -1009,6 +1010,7 @@ tmtags
 *.cmp
 *.jpg
 *.html
+!frontend/apps/web/index.html
 *.bsf
 
 # ignore simulation output of ModelSim
@@ -1085,3 +1087,5 @@ secring.*
 # MCP
 
 .ai
+.freebuff
+.playwright-mcp
