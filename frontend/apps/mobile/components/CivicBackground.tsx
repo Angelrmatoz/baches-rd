@@ -1,36 +1,49 @@
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 function CivicMarker({
   type = 'gold',
-  className,
+  className = '',
 }: {
   type?: 'gold' | 'critical' | 'verified';
   className?: string;
 }) {
-  const bg =
-    type === 'critical' ? 'bg-[#e0554a]' : type === 'verified' ? 'bg-[#5b8aff]' : 'bg-[#e6b23f]';
-  const innerBg =
-    type === 'critical' ? 'bg-[#edf1f7]' : type === 'verified' ? 'bg-[#0d1420]' : 'bg-[#332308]';
+  const bgMap = {
+    gold: 'bg-[#e6b23f]',
+    critical: 'bg-[#e0554a]',
+    verified: 'bg-[#5b8aff]',
+  };
+  const innerMap = {
+    gold: 'bg-[#332308]',
+    critical: 'bg-[#edf1f7]',
+    verified: 'bg-[#0d1420]',
+  };
 
   return (
     <View
-      className={`absolute items-center justify-center rounded-full border-[3px] border-[#0d1420] ${bg} ${className ?? ''}`}
-      style={{
-        shadowColor: '#0d1420',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.45,
-        shadowRadius: 12,
-        elevation: 8,
-      }}
+      className={`absolute items-center justify-center rounded-full border-[3px] border-[#0d1420] ${bgMap[type]} ${className}`}
+      style={[
+        Platform.select({
+          web: {
+            boxShadow: '0 4px 12px rgba(13, 20, 32, 0.45)',
+          },
+          default: {
+            shadowColor: '#0d1420',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.45,
+            shadowRadius: 12,
+            elevation: 8,
+          },
+        }),
+      ]}
     >
-      <View className={`h-2 w-2 rounded-full ${innerBg}`} />
+      <View className={`h-2 w-2 rounded-full ${innerMap[type]}`} />
     </View>
   );
 }
 
 export function CivicBackground() {
   return (
-    <View className="absolute inset-0 bg-[#0e1524] overflow-hidden" pointerEvents="none">
+    <View className="absolute inset-0 bg-[#0e1524] overflow-hidden" style={{ pointerEvents: 'none' }}>
       {/* Massive geometric circles matching Web retro background */}
       
       {/* Top Left Deep Blue Circle */}

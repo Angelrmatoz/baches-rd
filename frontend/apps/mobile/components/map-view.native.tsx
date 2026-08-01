@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
 import type { ReporteResponse } from '@repo/shared-types';
 
@@ -28,17 +28,26 @@ function CivicPin({ level, selected }: { level: string; selected: boolean }) {
   return (
     <View
       className="items-center justify-center rounded-full border-[3px]"
-      style={{
-        width: size,
-        height: size,
-        borderColor: '#0d1420',
-        backgroundColor: colors.bg,
-        shadowColor: '#0b1e4d',
-        shadowOpacity: 0.35,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 4,
-      }}
+      style={[
+        {
+          width: size,
+          height: size,
+          borderColor: '#0d1420',
+          backgroundColor: colors.bg,
+        },
+        Platform.select({
+          web: {
+            boxShadow: '0 4px 10px rgba(11, 30, 77, 0.35)',
+          },
+          default: {
+            shadowColor: '#0b1e4d',
+            shadowOpacity: 0.35,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 4,
+          },
+        }),
+      ]}
     >
       <View className="rounded-full" style={{ width: size * 0.34, height: size * 0.34, backgroundColor: colors.inner }} />
     </View>
@@ -49,18 +58,27 @@ function UserLocationDot() {
   return (
     <View
       className="rounded-full"
-      style={{
-        width: 22,
-        height: 22,
-        backgroundColor: '#3b82f6',
-        borderWidth: 3.5,
-        borderColor: '#ffffff',
-        shadowColor: '#3b82f6',
-        shadowOpacity: 0.6,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 0 },
-        elevation: 4,
-      }}
+      style={[
+        {
+          width: 22,
+          height: 22,
+          backgroundColor: '#3b82f6',
+          borderWidth: 3.5,
+          borderColor: '#ffffff',
+        },
+        Platform.select({
+          web: {
+            boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)',
+          },
+          default: {
+            shadowColor: '#3b82f6',
+            shadowOpacity: 0.6,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 4,
+          },
+        }),
+      ]}
     />
   );
 }
@@ -95,7 +113,7 @@ export default function MapViewComponent({
   }, [flyToCenter]);
 
   return (
-    <View className="absolute inset-0 z-0" pointerEvents="box-none">
+    <View className="absolute inset-0 z-0" style={{ pointerEvents: 'box-none' }}>
       <MapView
         ref={mapRef}
         style={StyleSheet.absoluteFill}

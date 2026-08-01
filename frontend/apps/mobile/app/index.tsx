@@ -72,29 +72,31 @@ export default function Dashboard() {
   const notifAnim = useRef(new Animated.Value(0)).current;
   const accountAnim = useRef(new Animated.Value(0)).current;
 
+  const useNativeDriver = Platform.OS !== 'web';
+
   useEffect(() => {
     Animated.timing(panelTranslate, {
       toValue: panelOpen ? 0 : -450,
       duration: 280,
-      useNativeDriver: true,
+      useNativeDriver,
     }).start();
-  }, [panelOpen, panelTranslate]);
+  }, [panelOpen, panelTranslate, useNativeDriver]);
 
   useEffect(() => {
     Animated.timing(notifAnim, {
       toValue: notificationsOpen ? 1 : 0,
       duration: 200,
-      useNativeDriver: true,
+      useNativeDriver,
     }).start();
-  }, [notificationsOpen, notifAnim]);
+  }, [notificationsOpen, notifAnim, useNativeDriver]);
 
   useEffect(() => {
     Animated.timing(accountAnim, {
       toValue: accountOpen ? 1 : 0,
       duration: 200,
-      useNativeDriver: true,
+      useNativeDriver,
     }).start();
-  }, [accountOpen, accountAnim]);
+  }, [accountOpen, accountAnim, useNativeDriver]);
 
   const showToast = (message: string, duration = 4000) => {
     setToastMessage(message);
@@ -257,7 +259,7 @@ export default function Dashboard() {
       />
 
       {/* Header — matches web Dashboard header */}
-      <View className="absolute inset-x-0 top-0 z-30 flex-row items-start justify-between gap-3 p-3" pointerEvents="box-none">
+      <View className="absolute inset-x-0 top-0 z-30 flex-row items-start justify-between gap-3 p-3" style={{ pointerEvents: 'box-none' }}>
         <View
           className="glass h-14 flex-row items-center gap-2.5 border border-civic-secondary px-3 shadow-lg"
           style={{ backgroundColor: 'rgba(22,32,55,0.94)', borderRadius: 16, overflow: 'hidden' }}
@@ -271,7 +273,7 @@ export default function Dashboard() {
           </View>
         </View>
 
-        <View pointerEvents="auto" onTouchEnd={(e) => e.stopPropagation()}>
+        <View className="relative" style={{ pointerEvents: 'auto' }} onTouchEnd={(e) => e.stopPropagation()}>
           <View
             className="glass h-14 flex-row items-center gap-1 border border-civic-secondary p-2 shadow-lg"
             style={{ backgroundColor: 'rgba(22,32,55,0.94)', borderRadius: 16, overflow: 'hidden' }}
@@ -327,88 +329,104 @@ export default function Dashboard() {
           </View>
 
           {/* Notification Center Dropdown */}
-          <Animated.View
-            className="absolute right-0 top-16 z-40 w-80 gap-2 rounded-2xl border border-civic-secondary p-3 shadow-xl"
-            pointerEvents={notificationsOpen ? 'auto' : 'none'}
-            style={{
-              backgroundColor: 'rgba(22,32,55,0.96)',
-              opacity: notifAnim,
-              transform: [
-                {
-                  scale: notifAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.94, 1],
-                  }),
-                },
-                {
-                  translateY: notifAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-8, 0],
-                  }),
-                },
-              ],
-            }}
-          >
-            <View className="flex-row items-center justify-between border-b border-civic-secondary px-1 pb-2">
-              <View className="flex-row items-center gap-2">
-                <Feather name="bell" size={16} color="#5b8aff" />
-                <Text className="text-sm font-bold text-civic-foreground">Notificaciones</Text>
-              </View>
-              {notifications.length > 0 && (
-                <Pressable onPress={handleClearAllNotifications}>
-                  <Text className="text-[11px] font-semibold text-civic-muted-foreground">Borrar todas</Text>
-                </Pressable>
-              )}
-            </View>
-
-            {notifications.length > 0 ? (
-              <View className="max-h-72 gap-1.5">
-                {notifications.map((n) => {
-                  const isDismissing = dismissingIds.includes(n.id);
-                  return (
-                    <View
-                      key={n.id}
-                      className={cn('flex-row items-start gap-2.5 rounded-xl p-2.5', isDismissing && 'opacity-30')}
-                    >
-                      <View className={cn('mt-0.5 h-8 w-8 items-center justify-center rounded-xl', n.color)}>
-                        <Feather name={n.icon} size={16} color="#5b8aff" />
-                      </View>
-                      <View className="min-w-0 flex-1">
-                        <View className="flex-row items-center justify-between gap-2">
-                          <Text className="flex-1 text-xs font-semibold text-civic-foreground" numberOfLines={1}>
-                            {n.title}
-                          </Text>
-                          <View className="flex-row items-center gap-1.5">
-                            <Text className="text-[10px] text-civic-muted-foreground">{n.time}</Text>
-                            <Pressable
-                              onPress={() => handleDismissNotification(n.id)}
-                              className="rounded-lg p-0.5"
-                            >
-                              <Feather name="x" size={14} color="#a8b2c7" />
-                            </Pressable>
-                          </View>
-                        </View>
-                        <Text className="mt-0.5 text-[11px] leading-tight text-civic-muted-foreground">{n.desc}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            ) : (
-              <View className="items-center justify-center p-6">
-                <Feather name="check-circle" size={32} color="#a8b2c7" />
-                <Text className="mt-2 text-xs font-semibold text-civic-muted-foreground">
-                  No tienes notificaciones pendientes
-                </Text>
-              </View>
-            )}
-          </Animated.View>
-
-          {user && (
+          {notificationsOpen && (
             <Animated.View
-              className="absolute right-0 top-16 z-40 w-56 gap-1 rounded-2xl border border-civic-secondary p-2 shadow-xl"
-              pointerEvents={accountOpen ? 'auto' : 'none'}
+              className="absolute z-40 border border-civic-secondary shadow-xl"
               style={{
+                position: 'absolute',
+                top: 60,
+                right: 0,
+                width: 330,
+                maxWidth: (Platform.OS === 'web' ? 'calc(100vw - 24px)' : '92%') as any,
+                borderRadius: 20,
+                padding: 16,
+                overflow: 'hidden',
+                backgroundColor: 'rgba(22,32,55,0.96)',
+                opacity: notifAnim,
+                transform: [
+                  {
+                    scale: notifAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.94, 1],
+                    }),
+                  },
+                  {
+                    translateY: notifAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-8, 0],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <View className="flex-row items-center justify-between border-b border-civic-secondary pb-2.5 mb-2">
+                <View className="flex-row items-center gap-2">
+                  <Feather name="bell" size={16} color="#5b8aff" />
+                  <Text className="text-sm font-bold text-civic-foreground">Notificaciones</Text>
+                </View>
+                {notifications.length > 0 && (
+                  <Pressable onPress={handleClearAllNotifications}>
+                    <Text className="text-[11px] font-semibold text-civic-muted-foreground">Borrar todas</Text>
+                  </Pressable>
+                )}
+              </View>
+
+              {notifications.length > 0 ? (
+                <View className="max-h-72 gap-2">
+                  {notifications.map((n) => {
+                    const isDismissing = dismissingIds.includes(n.id);
+                    return (
+                      <View
+                        key={n.id}
+                        className={cn('flex-row items-start gap-2.5 rounded-xl p-2', isDismissing && 'opacity-30')}
+                      >
+                        <View className={cn('mt-0.5 h-8 w-8 items-center justify-center rounded-xl', n.color)}>
+                          <Feather name={n.icon} size={16} color="#5b8aff" />
+                        </View>
+                        <View className="min-w-0 flex-1">
+                          <View className="flex-row items-center justify-between gap-2">
+                            <Text className="flex-1 text-xs font-semibold text-civic-foreground">
+                              {n.title}
+                            </Text>
+                            <View className="flex-row items-center gap-1.5 shrink-0">
+                              <Text className="text-[10px] text-civic-muted-foreground">{n.time}</Text>
+                              <Pressable
+                                onPress={() => handleDismissNotification(n.id)}
+                                className="rounded-lg p-0.5"
+                              >
+                                <Feather name="x" size={14} color="#a8b2c7" />
+                              </Pressable>
+                            </View>
+                          </View>
+                          <Text className="mt-0.5 text-[11px] leading-tight text-civic-muted-foreground">{n.desc}</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : (
+                <View className="items-center justify-center p-6">
+                  <Feather name="check-circle" size={32} color="#a8b2c7" />
+                  <Text className="mt-2 text-xs font-semibold text-civic-muted-foreground">
+                    No tienes notificaciones pendientes
+                  </Text>
+                </View>
+              )}
+            </Animated.View>
+          )}
+
+          {accountOpen && user && (
+            <Animated.View
+              className="absolute z-40 border border-civic-secondary shadow-xl"
+              style={{
+                position: 'absolute',
+                top: 60,
+                right: 0,
+                width: 240,
+                maxWidth: (Platform.OS === 'web' ? 'calc(100vw - 24px)' : '92%') as any,
+                borderRadius: 20,
+                padding: 14,
+                overflow: 'hidden',
                 backgroundColor: 'rgba(22,32,55,0.96)',
                 opacity: accountAnim,
                 transform: [
@@ -545,12 +563,15 @@ export default function Dashboard() {
         </Button>
       </Animated.View>
 
-      <View className="absolute bottom-24 right-3 z-20 flex-col gap-2">
+      <View className="absolute bottom-24 right-3 z-20 flex-col gap-2" onTouchEnd={(e) => e.stopPropagation()}>
         <Button
           variant="outline"
           size="icon-lg"
           className="rounded-2xl bg-civic-card shadow-md"
-          onPress={() => void handleLocateUser()}
+          onPress={() => {
+            void handleLocateUser();
+            setPanelOpen((open) => !open);
+          }}
         >
           <Feather name="crosshair" size={20} color="#a8b2c7" />
         </Button>
