@@ -42,6 +42,8 @@ cd backend
 .\mvnw.cmd test
 ```
 
+> **En CI (GitHub Actions):** el job `backend` ejecuta solo los unit tests sin base de datos, excluyendo las 3 clases `@SpringBootTest` que requieren PostgreSQL (`BackendApplicationTests`, `SecurityIntegrationTest`, `AuthControllerTest`). Esas se corren localmente contra `docker-compose.db.yml`.
+
 ---
 
 ## 🌐 Endpoints REST (`/api/v1`)

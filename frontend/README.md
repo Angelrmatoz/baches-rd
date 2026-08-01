@@ -53,6 +53,18 @@ pnpm lint
 pnpm format
 ```
 
+### Pruebas automatizadas
+```bash
+# Unitarias e integración (Vitest + React Testing Library) desde frontend/
+pnpm --filter web test
+
+# E2E (Playwright, Chromium + WebKit) desde frontend/apps/web
+cd apps/web
+pnpm test:e2e
+```
+
+> **En CI (GitHub Actions):** los jobs `frontend` (Vitest) y `frontend-e2e` (Playwright) validan el dashboard web en cada push a `main`. Los specs E2E mockean la API (`page.route('**/api/v1/**')`), así que no requieren backend ni base de datos en CI.
+
 ---
 
 ## ⚠️ Notas de Desarrollo

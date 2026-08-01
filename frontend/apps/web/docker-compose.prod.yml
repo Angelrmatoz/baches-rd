@@ -1,0 +1,16 @@
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      target: runner
+    container_name: baches-web
+    ports:
+      - "3000:80"
+    environment:
+      # Backend corre FUERA de Docker (WORA): Spring Boot nativo en la máquina host.
+      # Si el backend vive en otro servidor, cambiar esta variable al hostname/IP real.
+      BACKEND_UPSTREAM: "http://host.docker.internal:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

@@ -69,6 +69,20 @@ pnpm build
 
 ---
 
+## 🔄 Integración Continua (GitHub Actions)
+
+Workflow `.github/workflows/ci.yml` corre automáticamente en **cada push a `main`** (o manualmente vía `workflow_dispatch`) con **3 jobs en paralelo**:
+
+| Job | Qué valida | Comando |
+| --- | --- | --- |
+| `backend` | Unit tests (Mockito) sin base de datos. Excluye las 3 clases `@SpringBootTest` que requieren PostgreSQL: `BackendApplicationTests`, `SecurityIntegrationTest`, `AuthControllerTest` | `./mvnw -B test -Dtest='!BackendApplicationTests,!SecurityIntegrationTest,!AuthControllerTest'` |
+| `frontend` | Tests Vitest unitarios + integración (React Testing Library) del dashboard web | `pnpm --filter web test` |
+| `frontend-e2e` | Tests E2E Playwright (Chromium + WebKit) del dashboard web. Instala browsers y sube `playwright-report` como artifact si falla | `pnpm --filter web test:e2e` |
+
+> **Nota:** Los tests E2E mockean la API (`page.route('**/api/v1/**')`), por lo que no requieren backend ni base de datos en CI. Los tests backend con DB (`@SpringBootTest`) se ejecutan solo localmente contra PostgreSQL vía `docker-compose.db.yml`.
+
+---
+
 ## 🚦 Inicio Rápido de Desarrollo
 
 ### 1. Levantar la Base de Datos (PostGIS)

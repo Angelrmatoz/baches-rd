@@ -24,9 +24,10 @@ export default defineConfig({
     include: ["react", "react-dom", "react-router-dom"],
   },
   server: {
+    host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: process.env.VITE_DEV_PROXY_TARGET || "http://localhost:8080",
         changeOrigin: true,
       },
     },

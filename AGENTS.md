@@ -9,7 +9,7 @@ Documento de referencia para desarrolladores y asistentes IA sobre la arquitectu
 **Baches RD** es una plataforma de Tecnología Cívica para reportar, validar y visualizar daños viales en Santo Domingo de Guzmán, República Dominicana.
 
 - **Frontend:** Monorepo Turborepo con React + Vite (Web SPA) y React Native / Expo (Mobile App).
-- **Backend:** Spring Boot (Java 17 / 25) + PostgreSQL 17 / PostGIS 3.5 + Flyway.
+- **Backend:** Spring Boot (Java 25) + PostgreSQL 17 / PostGIS 3.5 + Flyway.
 - **Base de Datos local (Docker):** PostgreSQL en puerto `5433`, pgAdmin en puerto `5050`.
 
 ---
@@ -115,7 +115,7 @@ La plataforma cuenta con cobertura de pruebas automatizadas en Backend y Fronten
 ## ⚙️ Configuración del Entorno de Desarrollo
 
 ### Requisitos Locales:
-- **Java:** JDK 17 / JDK 25.
+- **Java:** JDK 25.
 - **Node.js:** v18+ & `pnpm` 8+.
 - **Docker Desktop:** Contenedor de PostgreSQL 17 / PostGIS 3.5 (`docker-compose.db.yml`).
 - **Variables de Entorno en IntelliJ IDEA (Ver [.env.template](file:///c:/Dev/baches-rd/.env.template)):**
@@ -157,4 +157,36 @@ pnpm test:e2e
 cd frontend
 pnpm build
 ```
+
+#### 6. Integración Continua (GitHub Actions):
+> Workflow `.github/workflows/ci.yml` corre en **cada push a `main`** (+ `workflow_dispatch` manual). **3 jobs en paralelo:**
+
+| Job | Qué valida | Notas |
+| --- | --- | --- |
+| `backend` | Unit tests (Mockito) **sin DB**. Excluye `BackendApplicationTests`, `SecurityIntegrationTest`, `AuthControllerTest` (requieren PostgreSQL) vía `-Dtest='!...'` | Si añades un test `@SpringBootTest` nuevo con DB, agrégale su exclusión al `-Dtest` |
+| `frontend` | Tests Vitest unitarios + integración del dashboard web (`pnpm --filter web test`) | Cubre componentes con React Testing Library |
+| `frontend-e2e` | Tests E2E Playwright (Chromium + WebKit). Instala browsers con `--with-deps`; sube `playwright-report` como artifact en fallo | Los specs mockean `/api/v1/**` con `page.route`, sin backend real |
+
+> **Regla de oro:** Los tests `@SpringBootTest` (integración con DB) corren **solo localmente** contra PostgreSQL (`docker-compose.db.yml`). CI solo valida lo que no toca base de datos.
+
+#### 7. Docker del Frontend Web (`frontend/apps/web`):
+> **Filosofía:** El backend **no** se conteneriza (WORA). Spring Boot corre nativo fuera de Docker; los contenedores del frontend apuntan al backend del host.
+> **Build context = raíz del monorepo `frontend/`** (necesario para los `workspace:*` de `@repo/*`).
+
+- **Desarrollo (hot-reload Vite):**
+  ```powershell
+  cd frontend
+  docker compose -f apps/web/docker-compose.dev.yml up --build
+  # Web en http://localhost:5173, proxy /api -> host.docker.internal:8080
+  ```
+- **Producción (nginx multi-stage):**
+  ```powershell
+  cd frontend
+  docker compose -f apps/web/docker-compose.prod.yml up --build
+  # Web en http://localhost:3000, proxy /api -> host.docker.internal:8080
+  ```
+- **Variables clave:**
+  - `VITE_DEV_PROXY_TARGET` (dev): target del proxy Vite (`server.proxy./api` en `vite.config.ts`).
+  - `BACKEND_UPSTREAM` (prod): upstream del proxy nginx; cambiar si el backend vive en otro servidor.
+- **Archivos:** `Dockerfile` único multistage (stages `base`→`deps`→`dev`/`builder`→`runner`; el compose elige el stage final vía `target: dev|runner`), `nginx.conf.template` (proxy `/api/` con `resolver` + variable, tolerante a upstream ausente; SPA `try_files`), `docker-compose.{dev,prod}.yml`, `frontend/.dockerignore`.
 
