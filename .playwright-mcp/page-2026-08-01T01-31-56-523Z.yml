@@ -1,0 +1,28 @@
+- generic [ref=e11]:
+  - generic [ref=e14]:
+    - generic [ref=e15]: Baches RD
+    - generic [ref=e16]: Santo Domingo de Guzmán
+  - generic [ref=e17]:
+    - generic [ref=e18]: Acceso ciudadano
+    - generic [ref=e19]: Inicia sesión
+    - generic [ref=e20]: Entra para ver el mapa, reportar baches y validar reportes de tu zona.
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]: Correo electrónico
+        - generic [ref=e24]:
+          - generic [ref=e25]: 
+          - textbox "tu@correo.com" [ref=e26]
+      - generic [ref=e27]:
+        - generic [ref=e28]: Contraseña
+        - generic [ref=e29]:
+          - generic [ref=e30]: 
+          - textbox "••••••••" [ref=e31]
+          - generic "Mostrar contraseña" [ref=e32] [cursor=pointer]: 
+      - generic [ref=e34] [cursor=pointer]:
+        - generic [ref=e35]: 
+        - generic [ref=e37]: Recordarme
+      - generic [ref=e38] [cursor=pointer]: Entrar al mapa
+    - generic [ref=e41]:
+      - text: ¿Aún no tienes cuenta?
+      - link "Crear cuenta" [ref=e42] [cursor=pointer]:
+        - /url: /register

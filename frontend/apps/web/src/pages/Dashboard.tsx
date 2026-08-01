@@ -188,8 +188,18 @@ export function Dashboard() {
     return name.slice(0, 2).toUpperCase()
   }
 
+  const closeAllMenus = () => {
+    setNotificationsOpen(false)
+    setAccountOpen(false)
+    setPanelOpen(false)
+  }
+
   return (
-    <main className="relative isolate h-dvh min-h-150 overflow-hidden bg-background" onClick={() => setAccountOpen(false)}>
+    <main className="relative isolate h-dvh min-h-150 overflow-hidden bg-background" onClick={closeAllMenus}>
+      {(notificationsOpen || accountOpen || panelOpen) && (
+        <div className="fixed inset-0 z-10" onClick={closeAllMenus} />
+      )}
+
       <MapView
         reports={filteredReports}
         selectedReportId={selectedReportId}
@@ -271,75 +281,82 @@ export function Dashboard() {
           </div>
 
           {/* Notification Center Dropdown */}
-          {notificationsOpen && (
-            <div
-              role="menu"
-              className="absolute right-0 top-[calc(100%+0.5rem)] z-40 flex w-80 flex-col gap-2 rounded-2xl border bg-card/95 p-3 shadow-xl backdrop-blur-md animate-dropdown"
-            >
-              <div className="flex items-center justify-between border-b pb-2 px-1">
-                <div className="flex items-center gap-2">
-                  <Bell className="size-4 text-primary" />
-                  <p className="text-sm font-bold text-foreground">Notificaciones</p>
-                </div>
-                {notifications.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleClearAllNotifications}
-                    className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
-                  >
-                    Borrar todas
-                  </button>
-                )}
+          <div
+            role="menu"
+            className={cn(
+              'absolute right-0 top-[calc(100%+0.5rem)] z-40 flex w-80 flex-col gap-2 rounded-2xl border bg-card/95 p-3 shadow-xl backdrop-blur-md transition-all duration-200 origin-top-right',
+              notificationsOpen ? 'scale-100 opacity-100 pointer-events-auto translate-y-0' : 'scale-95 opacity-0 pointer-events-none -translate-y-2'
+            )}
+          >
+            <div className="flex items-center justify-between border-b pb-2 px-1">
+              <div className="flex items-center gap-2">
+                <Bell className="size-4 text-primary" />
+                <p className="text-sm font-bold text-foreground">Notificaciones</p>
               </div>
-
-              {notifications.length > 0 ? (
-                <div className="flex max-h-72 flex-col gap-1.5 overflow-y-auto overflow-x-hidden pr-1">
-                  {notifications.map((n) => {
-                    const IconComp = n.icon
-                    const isDismissing = dismissingIds.includes(n.id)
-                    return (
-                      <div
-                        key={n.id}
-                        className={cn(
-                          'flex items-start gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-secondary/70',
-                          isDismissing && 'animate-item-dismiss'
-                        )}
-                      >
-                        <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl ${n.color}`}>
-                          <IconComp className="size-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-foreground truncate">{n.title}</p>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className="text-[10px] text-muted-foreground">{n.time}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleDismissNotification(n.id)}
-                                className="rounded-lg p-0.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
-                                title="Eliminar notificación"
-                              >
-                                <X className="size-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                          <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{n.desc}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-6 text-center">
-                  <CheckCircle2 className="size-8 text-muted-foreground/50" />
-                  <p className="mt-2 text-xs font-semibold text-muted-foreground">No tienes notificaciones pendientes</p>
-                </div>
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAllNotifications}
+                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                >
+                  Borrar todas
+                </button>
               )}
             </div>
-          )}
 
-          {accountOpen && user && (
-            <div role="menu" className="absolute right-0 top-[calc(100%+0.5rem)] flex w-56 flex-col gap-1 rounded-2xl border bg-card/95 p-2 shadow-xl backdrop-blur-md animate-dropdown">
+            {notifications.length > 0 ? (
+              <div className="flex max-h-72 flex-col gap-1.5 overflow-y-auto overflow-x-hidden pr-1">
+                {notifications.map((n) => {
+                  const IconComp = n.icon
+                  const isDismissing = dismissingIds.includes(n.id)
+                  return (
+                    <div
+                      key={n.id}
+                      className={cn(
+                        'flex items-start gap-2.5 rounded-xl p-2.5 transition-colors hover:bg-secondary/70',
+                        isDismissing && 'animate-item-dismiss'
+                      )}
+                    >
+                      <div className={`mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl ${n.color}`}>
+                        <IconComp className="size-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-semibold text-foreground truncate">{n.title}</p>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] text-muted-foreground">{n.time}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDismissNotification(n.id)}
+                              className="rounded-lg p-0.5 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
+                              title="Eliminar notificación"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{n.desc}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-6 text-center">
+                <CheckCircle2 className="size-8 text-muted-foreground/50" />
+                <p className="mt-2 text-xs font-semibold text-muted-foreground">No tienes notificaciones pendientes</p>
+              </div>
+            )}
+          </div>
+
+          {user && (
+            <div
+              role="menu"
+              className={cn(
+                'absolute right-0 top-[calc(100%+0.5rem)] flex w-56 flex-col gap-1 rounded-2xl border bg-card/95 p-2 shadow-xl backdrop-blur-md transition-all duration-200 origin-top-right',
+                accountOpen ? 'scale-100 opacity-100 pointer-events-auto translate-y-0' : 'scale-95 opacity-0 pointer-events-none -translate-y-2'
+              )}
+            >
               <div className="px-3 py-2">
                 <p className="text-sm font-semibold">{user.nombre}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -355,7 +372,7 @@ export function Dashboard() {
         </div>
       </header>
 
-      <aside className={cn('absolute bottom-24 left-3 top-24 z-20 flex w-[calc(100%-1.5rem)] max-w-80 flex-col rounded-3xl border bg-card/95 p-4 shadow-lg transition-all duration-300 md:bottom-5 md:left-5 md:top-28', panelOpen ? 'translate-x-0 opacity-100 pointer-events-auto' : '-translate-x-[120%] opacity-0 pointer-events-none')}>
+      <aside onClick={(e) => e.stopPropagation()} className={cn('absolute bottom-24 left-3 top-24 z-20 flex w-[calc(100%-1.5rem)] max-w-80 flex-col rounded-3xl border bg-card/95 p-4 shadow-lg transition-all duration-300 md:bottom-5 md:left-5 md:top-28', panelOpen ? 'translate-x-0 opacity-100 pointer-events-auto' : '-translate-x-[120%] opacity-0 pointer-events-none')}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-primary">Santo Domingo</p>
@@ -410,7 +427,7 @@ export function Dashboard() {
         </Button>
       </aside>
 
-      <div className="absolute bottom-24 right-3 z-20 flex flex-col gap-2 md:bottom-6 md:right-5">
+      <div className="absolute bottom-24 right-3 z-20 flex flex-col gap-2 md:bottom-6 md:right-5" onClick={(e) => e.stopPropagation()}>
         <Button variant="outline" size="icon-lg" className="rounded-2xl bg-card shadow-md hover:bg-secondary" onClick={handleLocateUser} aria-label="Centrar en mi ubicación">
           <Crosshair />
         </Button>
