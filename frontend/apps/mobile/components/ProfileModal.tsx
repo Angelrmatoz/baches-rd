@@ -126,7 +126,7 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
 
         {activeTab === 'profile' ? (
           <ScrollView className="px-5 pb-6" contentContainerClassName="gap-4" keyboardShouldPersistTaps="handled">
-            {error && (
+            {!!error && (
               <View className="rounded-xl bg-civic-destructive/15 p-3">
                 <Text className="text-xs text-civic-destructive">{error}</Text>
               </View>
@@ -163,7 +163,7 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
                     </Text>
                   </Pressable>
 
-                  {avatarUrl && (
+                  {!!avatarUrl && (
                     <Button variant="ghost" size="sm" className="rounded-xl" onPress={handleRemoveAvatar}>
                       <Text className="text-xs text-civic-destructive">Borrar foto</Text>
                     </Button>

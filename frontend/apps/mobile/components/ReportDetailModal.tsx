@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -38,6 +38,13 @@ export function ReportDetailModal({
   const [photos, setPhotos] = useState<FotoResponse[]>(report?.fotos || []);
   const [addingPhoto, setAddingPhoto] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (report) {
+      setPhotos(report.fotos || []);
+      setCurrentPhotoIndex(0);
+    }
+  }, [report]);
 
   if (!isOpen || !report) return null;
 
@@ -290,17 +297,19 @@ export function ReportDetailModal({
             ) : null
           )}
 
-          <View className="flex-row gap-3 rounded-2xl bg-civic-secondary/50 p-4">
-            <View className="flex-1 flex-row items-center gap-2">
+          <View className="flex-col gap-2.5 rounded-2xl bg-civic-secondary/50 p-4">
+            <View className="flex-row items-center gap-2">
               <Feather name="user" size={16} color="#a8b2c7" />
-              <View>
+              <View className="min-w-0 flex-1">
                 <Text className="text-[11px] text-civic-muted-foreground">Reportado por</Text>
-                <Text className="text-xs font-semibold text-civic-foreground">{report.usuario?.nombre || 'Ciudadano'}</Text>
+                <Text className="text-xs font-semibold text-civic-foreground" numberOfLines={1}>
+                  {report.usuario?.nombre || 'Ciudadano'}
+                </Text>
               </View>
             </View>
-            <View className="flex-1 flex-row items-center gap-2">
+            <View className="flex-row items-center gap-2 border-t border-civic-secondary/40 pt-2">
               <Feather name="map-pin" size={16} color="#a8b2c7" />
-              <View>
+              <View className="min-w-0 flex-1">
                 <Text className="text-[11px] text-civic-muted-foreground">Coordenadas</Text>
                 <Text className="text-xs font-semibold text-civic-foreground">
                   {report.latitud.toFixed(4)}, {report.longitud.toFixed(4)}
@@ -331,63 +340,63 @@ export function ReportDetailModal({
             </Pressable>
           )}
 
-          <View className="flex-row items-center justify-between border-t border-civic-secondary pt-4">
-            <View className="flex-row items-center gap-2">
-              <Feather name="check-circle" size={20} color="#5b8aff" />
-              <Text className="text-sm font-semibold text-civic-foreground">{report.totalValidaciones} likes</Text>
-            </View>
+          <View className="gap-3 border-t border-civic-secondary pt-4">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <Feather name="check-circle" size={18} color="#5b8aff" />
+                <Text className="text-sm font-semibold text-civic-foreground">{report.totalValidaciones} likes</Text>
+              </View>
 
-            <View className="flex-row items-center gap-2">
               {isOwnerOrAdmin && !editing && (
-                <>
+                <View className="flex-row items-center gap-1">
                   <Button variant="ghost" size="sm" className="rounded-xl" onPress={handleStartEdit}>
-                    <Feather name="edit-2" size={16} color="#a8b2c7" />
-                    <Text className="text-sm font-medium text-civic-foreground">Editar</Text>
+                    <Feather name="edit-2" size={15} color="#a8b2c7" />
+                    <Text className="text-xs font-medium text-civic-foreground">Editar</Text>
                   </Button>
                   <Button variant="ghost" size="sm" className="rounded-xl" onPress={() => setIsConfirmDeleteOpen(true)}>
-                    <Feather name="trash-2" size={16} color="#e0554a" />
-                    <Text className="text-sm font-medium text-civic-destructive">Eliminar</Text>
+                    <Feather name="trash-2" size={15} color="#e0554a" />
+                    <Text className="text-xs font-medium text-civic-destructive">Eliminar</Text>
                   </Button>
-                </>
+                </View>
               )}
 
               {editing && (
-                <>
+                <View className="flex-row items-center gap-1">
                   <Button variant="ghost" size="sm" className="rounded-xl" onPress={handleCancelEdit}>
-                    <Text className="text-sm font-medium text-civic-foreground">Cancelar</Text>
+                    <Text className="text-xs font-medium text-civic-foreground">Cancelar</Text>
                   </Button>
                   <Button size="sm" className="rounded-xl" loading={saving} disabled={saving} onPress={() => void handleSaveEdit()}>
-                    <Text className="text-sm font-semibold text-civic-primary-foreground">
-                      {saving ? 'Guardando...' : 'Guardar cambios'}
+                    <Text className="text-xs font-semibold text-civic-primary-foreground">
+                      {saving ? 'Guardando...' : 'Guardar'}
                     </Text>
                   </Button>
-                </>
-              )}
-
-              {!editing && (
-                <Button
-                  variant={report.validadoPorUsuarioActual ? 'default' : 'outline'}
-                  className="rounded-xl"
-                  loading={loadingLike}
-                  disabled={loadingLike}
-                  onPress={() => void handleToggleValidation()}
-                >
-                  <Feather
-                    name="heart"
-                    size={16}
-                    color={report.validadoPorUsuarioActual ? '#0d1420' : '#a8b2c7'}
-                  />
-                  <Text
-                    className={cn(
-                      'text-sm font-semibold',
-                      report.validadoPorUsuarioActual ? 'text-civic-primary-foreground' : 'text-civic-foreground'
-                    )}
-                  >
-                    {report.validadoPorUsuarioActual ? 'Validado' : 'Validar este bache'}
-                  </Text>
-                </Button>
+                </View>
               )}
             </View>
+
+            {!editing && (
+              <Button
+                variant={report.validadoPorUsuarioActual ? 'default' : 'outline'}
+                className="h-11 w-full rounded-xl"
+                loading={loadingLike}
+                disabled={loadingLike}
+                onPress={() => void handleToggleValidation()}
+              >
+                <Feather
+                  name="heart"
+                  size={16}
+                  color={report.validadoPorUsuarioActual ? '#0d1420' : '#a8b2c7'}
+                />
+                <Text
+                  className={cn(
+                    'text-sm font-bold',
+                    report.validadoPorUsuarioActual ? 'text-civic-primary-foreground' : 'text-civic-foreground'
+                  )}
+                >
+                  {report.validadoPorUsuarioActual ? 'Confirmado / Validado' : 'Validar este bache'}
+                </Text>
+              </Button>
+            )}
           </View>
         </ScrollView>
       </ModalShell>

@@ -629,7 +629,7 @@ export default function Dashboard() {
         }}
       />
 
-      {toastMessage && (
+      {!!toastMessage && (
         <View className="pointer-events-none absolute inset-x-0 top-20 z-40 flex-row justify-center">
           <View className="flex-row items-center gap-2 rounded-full bg-civic-primary/95 px-4 py-2 shadow-xl">
             <Feather name="check-circle" size={16} color="#0d1420" />

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight, Heart, MapPin, Pencil, Plus, ShieldAlert, Trash2, User, X } from 'lucide-react'
 import type { ReporteResponse, Severidad, UsuarioResponse } from '@repo/shared-types'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,13 @@ export function ReportDetailModal({
   const [photos, setPhotos] = useState(report?.fotos || [])
   const [addingPhoto, setAddingPhoto] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (report) {
+      setPhotos(report.fotos || [])
+      setCurrentPhotoIndex(0)
+    }
+  }, [report])
 
   if (!isOpen || !report) return null
 
