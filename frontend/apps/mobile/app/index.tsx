@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Animated, Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReporteResponse } from '@repo/shared-types';
 
 import { cn } from '../lib/cn';
@@ -21,6 +22,7 @@ const filters = ['Todos', 'Críticos', 'Validados'];
 export default function Dashboard() {
   const router = useRouter();
   const { user, isAuthenticated, logout, updateUser } = useAuth();
+  const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [panelOpen, setPanelOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -261,7 +263,10 @@ export default function Dashboard() {
       />
 
       {/* Header — matches web Dashboard header */}
-      <View className="absolute inset-x-0 top-0 z-30 flex-row items-start justify-between gap-3 p-3" style={{ pointerEvents: 'box-none' }}>
+      <View
+        className="absolute inset-x-0 top-0 z-30 flex-row items-start justify-between gap-3 p-3"
+        style={{ pointerEvents: 'box-none', paddingTop: Math.max(insets.top + 12, 12) }}
+      >
         <View
           className="glass h-14 flex-row items-center gap-2.5 border border-civic-secondary px-3 shadow-lg"
           style={{ backgroundColor: 'rgba(22,32,55,0.94)', borderRadius: 16, overflow: 'hidden' }}
@@ -478,7 +483,7 @@ export default function Dashboard() {
         onTouchEnd={(e) => e.stopPropagation()}
         style={{
           backgroundColor: 'rgba(22,32,55,0.96)',
-          top: 80,
+          top: Platform.OS === 'web' ? 80 : Math.max(insets.top + 76, 80),
           left: 12,
           bottom: 96,
           width: 340,
