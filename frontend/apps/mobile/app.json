@@ -20,7 +20,12 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.angelrmatoz.mobile"
+      "package": "com.angelrmatoz.mobile",
+      "config": {
+        "googleMaps": {
+          "apiKey": "TU_API_KEY_AQUI"
+        }
+      }
     },
     "web": {
       "backgroundColor": "#0e1524",

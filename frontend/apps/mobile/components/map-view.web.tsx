@@ -2,7 +2,6 @@ import { divIcon } from 'leaflet';
 import { useEffect } from 'react';
 import { MapContainer, Marker, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import type { ReporteResponse } from '@repo/shared-types';
-import 'leaflet/dist/leaflet.css';
 import '../web.css';
 
 function getReportLevel(report: ReporteResponse): string {
@@ -94,6 +93,16 @@ export default function MapView({
   flyToCenter?: [number, number] | null;
   onSelectReport: (id: string) => void;
 }) {
+  useEffect(() => {
+    if (typeof document !== 'undefined' && !document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+  }, []);
+
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
       <MapContainer center={[18.474, -69.923]} zoom={14} zoomControl={false} style={{ width: '100%', height: '100%' }} attributionControl={false}>
