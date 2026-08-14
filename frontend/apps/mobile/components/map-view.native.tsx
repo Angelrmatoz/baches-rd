@@ -1,13 +1,28 @@
-import { useEffect, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Camera, Map, Marker, type CameraRef, type StyleSpecification } from '@maplibre/maplibre-react-native';
 import type { ReporteResponse } from '@repo/shared-types';
 
 const SANTO_DOMINGO = {
   latitude: 18.474,
   longitude: -69.923,
-  latitudeDelta: 0.12,
-  longitudeDelta: 0.12,
+  zoom: 12,
+};
+
+const MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    carto: {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors © CARTO',
+    },
+  },
+  layers: [
+    { id: 'background', type: 'background', paint: { 'background-color': '#eef0f3' } },
+    { id: 'carto', type: 'raster', source: 'carto' },
+  ],
 };
 
 const PIN_COLORS: Record<string, { bg: string; inner: string }> = {
@@ -96,53 +111,92 @@ export default function MapViewComponent({
   flyToCenter?: [number, number] | null;
   onSelectReport: (id: string) => void;
 }) {
-  const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<CameraRef>(null);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const retry = () => {
+    setStatus('loading');
+    setReloadKey((k) => k + 1);
+  };
 
   useEffect(() => {
-    if (flyToCenter && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: flyToCenter[0],
-          longitude: flyToCenter[1],
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        },
-        1200
-      );
+    if (flyToCenter && cameraRef.current) {
+      cameraRef.current.flyTo({
+        center: [flyToCenter[1], flyToCenter[0]],
+        zoom: 16,
+        duration: 1200,
+      });
     }
   }, [flyToCenter]);
 
   return (
     <View className="absolute inset-0 z-0" style={{ pointerEvents: 'box-none' }}>
-      <MapView
-        ref={mapRef}
+      <Map
+        key={reloadKey}
         style={StyleSheet.absoluteFill}
-        initialRegion={SANTO_DOMINGO}
-        showsUserLocation={false}
-        toolbarEnabled={false}
-        loadingEnabled
+        mapStyle={MAP_STYLE}
+        onWillStartLoadingMap={() => setStatus('loading')}
+        onDidFinishLoadingMap={() => setStatus('ready')}
+        onDidFailLoadingMap={() => setStatus('error')}
       >
-        <UrlTile
-          urlTemplate="https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          maximumZ={20}
+        <Camera
+          ref={cameraRef}
+          initialViewState={{
+            center: [SANTO_DOMINGO.longitude, SANTO_DOMINGO.latitude],
+            zoom: SANTO_DOMINGO.zoom,
+          }}
         />
 
-        {userLocation && <Marker coordinate={{ latitude: userLocation[0], longitude: userLocation[1] }} zIndex={1000} anchor={{ x: 0.5, y: 0.5 }}>
-          <UserLocationDot />
-        </Marker>}
+        {userLocation && (
+          <Marker lngLat={[userLocation[1], userLocation[0]]}>
+            <UserLocationDot />
+          </Marker>
+        )}
 
         {reports.map((report) => (
           <Marker
             key={report.id}
-            coordinate={{ latitude: report.latitud, longitude: report.longitud }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            zIndex={selectedReportId === report.id ? 100 : 10}
+            lngLat={[report.longitud, report.latitud]}
             onPress={() => onSelectReport(report.id)}
           >
             <CivicPin level={getReportLevel(report)} selected={selectedReportId === report.id} />
           </Marker>
         ))}
-      </MapView>
+      </Map>
+
+      {status === 'loading' && (
+        <View
+          className="absolute inset-0 items-center justify-center"
+          style={{ backgroundColor: 'rgba(13,20,32,0.35)' }}
+        >
+          <ActivityIndicator size="large" color="#5b8aff" />
+        </View>
+      )}
+
+      {status === 'error' && (
+        <View
+          className="absolute inset-0 items-center justify-center p-6"
+          style={{ backgroundColor: 'rgba(13,20,32,0.7)' }}
+        >
+          <View
+            className="glass w-full max-w-sm items-center gap-3 border border-civic-secondary p-5"
+            style={{ backgroundColor: 'rgba(22,32,55,0.96)', borderRadius: 16 }}
+          >
+            <Text className="text-base font-bold text-civic-foreground">No se pudo cargar el mapa</Text>
+            <Text className="text-center text-sm text-civic-muted-foreground">
+              Verifica tu conexión a internet e intenta de nuevo.
+            </Text>
+            <Pressable
+              onPress={retry}
+              className="rounded-xl bg-civic-primary px-5 py-2.5"
+              accessibilityRole="button"
+            >
+              <Text className="text-sm font-bold text-civic-primary-foreground">Reintentar</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

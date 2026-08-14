@@ -1,9 +1,9 @@
-import { Platform } from 'react-native';
 import { api as coreApi } from '@repo/api';
 import type { CloudinarySignatureResponse, FotoResponse } from '@repo/shared-types';
 
 export interface PickedImage {
   uri: string;
+  base64?: string | null;
   fileName?: string | null;
   mimeType?: string | null;
   fileSize?: number | null;
@@ -11,35 +11,50 @@ export interface PickedImage {
   height?: number | null;
 }
 
-async function appendImage(formData: FormData, asset: PickedImage): Promise<void> {
-  const name = asset.fileName || 'photo.jpg';
-  const type = asset.mimeType || 'image/jpeg';
-
-  if (Platform.OS === 'web') {
-    // En web el FormData es el nativo del navegador: necesita un Blob/File.
+async function getFileDataUrl(asset: PickedImage): Promise<string> {
+  const mime = asset.mimeType || 'image/jpeg';
+  if (asset.base64) {
+    return asset.base64.startsWith('data:') ? asset.base64 : `data:${mime};base64,${asset.base64}`;
+  }
+  if (asset.uri.startsWith('data:')) {
+    return asset.uri;
+  }
+  try {
     const res = await fetch(asset.uri);
     const blob = await res.blob();
-    formData.append('file', blob, name);
-  } else {
-    // En React Native los "files" son objetos { uri, name, type }.
-    formData.append('file', { uri: asset.uri, name, type } as unknown as Blob);
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return asset.uri;
   }
 }
 
 async function uploadToCloudinary(asset: PickedImage): Promise<{ secure_url: string; public_id: string }> {
   const sig: CloudinarySignatureResponse = await coreApi.getPhotoSignature();
-  const formData = new FormData();
-  await appendImage(formData, asset);
-  formData.append('api_key', sig.apiKey);
-  formData.append('timestamp', String(sig.timestamp));
-  formData.append('signature', sig.signature);
+  const fileData = await getFileDataUrl(asset);
+
+  const payload = {
+    file: fileData,
+    api_key: sig.apiKey,
+    timestamp: sig.timestamp,
+    signature: sig.signature,
+  };
 
   const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   });
 
   if (!cloudRes.ok) {
+    const errorText = await cloudRes.text().catch(() => '');
+    console.error('[uploadToCloudinary] Cloudinary error:', cloudRes.status, errorText);
     throw new Error('Error al subir la imagen a Cloudinary');
   }
 

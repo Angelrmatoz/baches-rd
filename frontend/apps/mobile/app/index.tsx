@@ -3,9 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Animated, Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Image, LogBox, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReporteResponse } from '@repo/shared-types';
+
+LogBox.ignoreLogs(['stream was reset: CANCEL']);
 
 import { cn } from '../lib/cn';
 import MapView from '../components/map-view';
@@ -23,6 +25,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, isAuthenticated, logout, updateUser } = useAuth();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [panelOpen, setPanelOpen] = useState(true);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -344,7 +347,7 @@ export default function Dashboard() {
                 top: 60,
                 right: 0,
                 width: 330,
-                maxWidth: (Platform.OS === 'web' ? 'calc(100vw - 24px)' : '92%') as any,
+                maxWidth: Platform.OS === 'web' ? ('calc(100vw - 24px)' as any) : screenWidth - 24,
                 borderRadius: 20,
                 padding: 16,
                 overflow: 'hidden',
@@ -379,7 +382,7 @@ export default function Dashboard() {
               </View>
 
               {notifications.length > 0 ? (
-                <View className="max-h-72 gap-2">
+                <ScrollView className="max-h-72" contentContainerClassName="gap-2" showsVerticalScrollIndicator={false}>
                   {notifications.map((n) => {
                     const isDismissing = dismissingIds.includes(n.id);
                     return (
@@ -410,7 +413,7 @@ export default function Dashboard() {
                       </View>
                     );
                   })}
-                </View>
+                </ScrollView>
               ) : (
                 <View className="items-center justify-center p-6">
                   <Feather name="check-circle" size={32} color="#a8b2c7" />
@@ -430,7 +433,7 @@ export default function Dashboard() {
                 top: 60,
                 right: 0,
                 width: 240,
-                maxWidth: (Platform.OS === 'web' ? 'calc(100vw - 24px)' : '92%') as any,
+                maxWidth: Platform.OS === 'web' ? ('calc(100vw - 24px)' as any) : screenWidth - 24,
                 borderRadius: 20,
                 padding: 14,
                 overflow: 'hidden',
@@ -577,7 +580,6 @@ export default function Dashboard() {
           className="rounded-2xl bg-civic-card shadow-md"
           onPress={() => {
             void handleLocateUser();
-            setPanelOpen((open) => !open);
           }}
         >
           <Feather name="crosshair" size={20} color="#a8b2c7" />
@@ -638,7 +640,10 @@ export default function Dashboard() {
       />
 
       {!!toastMessage && (
-        <View className="pointer-events-none absolute inset-x-0 top-20 z-40 flex-row justify-center">
+        <View
+          className="pointer-events-none absolute inset-x-0 z-40 flex-row justify-center"
+          style={{ top: insets.top + 88 }}
+        >
           <View className="flex-row items-center gap-2 rounded-full bg-civic-primary/95 px-4 py-2 shadow-xl">
             <Feather name="check-circle" size={16} color="#0d1420" />
             <Text className="text-xs font-semibold text-civic-primary-foreground">{toastMessage}</Text>

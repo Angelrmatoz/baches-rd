@@ -67,11 +67,13 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
       mediaTypes: ['images'],
       allowsMultipleSelection: false,
       quality: 0.8,
+      base64: true,
     });
     if (result.canceled || result.assets.length === 0) return;
     const asset = result.assets[0];
     const picked: PickedImage = {
       uri: asset.uri,
+      base64: asset.base64,
       fileName: asset.fileName,
       mimeType: asset.mimeType,
       fileSize: asset.fileSize,
@@ -92,14 +94,14 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
 
   return (
     <>
-      <ModalShell visible={isOpen} onClose={onClose} cardClassName="max-h-[90%]">
-        <View className="flex-row items-center justify-between border-b border-civic-secondary p-5 pb-4">
+      <ModalShell visible={isOpen} onClose={onClose}>
+        <View className="flex-row items-center justify-between border-b border-civic-secondary px-4 py-3">
           <View className="flex-row items-center gap-2">
-            <View className="h-9 w-9 items-center justify-center rounded-xl bg-civic-primary/15">
-              <Feather name="user" size={20} color="#5b8aff" />
+            <View className="h-8 w-8 items-center justify-center rounded-xl bg-civic-primary/15">
+              <Feather name="user" size={18} color="#5b8aff" />
             </View>
             <View>
-              <Text className="text-lg font-bold text-civic-foreground">Mi cuenta</Text>
+              <Text className="text-base font-bold text-civic-foreground">Mi cuenta</Text>
               <Text className="text-xs text-civic-muted-foreground">{user.email}</Text>
             </View>
           </View>
@@ -108,13 +110,13 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
           </Button>
         </View>
 
-        <View className="p-5">
+        <View className="px-4 pt-3">
           <View className="flex-row gap-1 rounded-xl bg-civic-secondary/70 p-1">
             {(['profile', 'reports'] as const).map((tab) => (
               <Pressable
                 key={tab}
                 onPress={() => setActiveTab(tab)}
-                className={cn('flex-1 items-center rounded-lg py-2', activeTab === tab ? 'bg-civic-background shadow-sm' : '')}
+                className={cn('flex-1 items-center rounded-lg py-2', activeTab === tab ? 'bg-civic-background shadow-sm' : 'shadow-none')}
               >
                 <Text className={cn('text-xs font-semibold', activeTab === tab ? 'text-civic-foreground' : 'text-civic-muted-foreground')}>
                   {tab === 'profile' ? 'Editar perfil' : 'Mis reportes'}
@@ -125,7 +127,7 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
         </View>
 
         {activeTab === 'profile' ? (
-          <ScrollView className="px-5 pb-6" contentContainerClassName="gap-4" keyboardShouldPersistTaps="handled">
+          <ScrollView className="px-4 pb-4" contentContainerClassName="gap-3" keyboardShouldPersistTaps="handled">
             {!!error && (
               <View className="rounded-xl bg-civic-destructive/15 p-3">
                 <Text className="text-xs text-civic-destructive">{error}</Text>
@@ -138,7 +140,7 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
                 value={nombre}
                 onChangeText={setNombre}
                 placeholderTextColor="#a8b2c7"
-                className="mt-1 h-11 w-full rounded-xl border border-civic-secondary bg-civic-secondary/60 px-3 text-sm text-civic-foreground"
+                className="mt-1 h-10 w-full rounded-xl border border-civic-secondary bg-civic-secondary/60 px-3 text-sm text-civic-foreground"
               />
             </View>
 
@@ -146,17 +148,17 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
               <Text className="text-xs font-semibold text-civic-muted-foreground">Foto de perfil (Avatar)</Text>
               <View className="mt-2 flex-row items-center gap-4">
                 {avatarUrl ? (
-                  <Image source={{ uri: avatarUrl }} className="h-14 w-14 rounded-full border object-cover" accessibilityLabel="Avatar" />
+                  <Image source={{ uri: avatarUrl }} className="h-12 w-12 rounded-full border object-cover" accessibilityLabel="Avatar" />
                 ) : (
-                  <View className="h-14 w-14 items-center justify-center rounded-full bg-civic-primary/15">
-                    <Text className="text-xl font-bold text-civic-primary">{nombre ? nombre[0].toUpperCase() : 'U'}</Text>
+                  <View className="h-12 w-12 items-center justify-center rounded-full bg-civic-primary/15">
+                    <Text className="text-lg font-bold text-civic-primary">{nombre ? nombre[0].toUpperCase() : 'U'}</Text>
                   </View>
                 )}
 
                 <View className="flex-row items-center gap-2">
                   <Pressable
                     onPress={() => void handleUploadAvatar()}
-                    className="h-10 flex-row items-center gap-2 rounded-xl border border-civic-secondary bg-civic-secondary/80 px-3 active:bg-civic-secondary"
+                    className="h-9 flex-row items-center gap-2 rounded-xl border border-civic-secondary bg-civic-secondary/80 px-3 active:bg-civic-secondary"
                   >
                     <Text className="text-xs font-semibold text-civic-foreground">
                       {avatarUrl ? 'Cambiar foto' : 'Subir nueva foto'}
@@ -175,7 +177,7 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
               </Text>
             </View>
 
-            <View className="mt-2 flex-row items-center justify-end gap-2 border-t border-civic-secondary pt-4">
+            <View className="mt-1 flex-row items-center justify-end gap-2 border-t border-civic-secondary pt-3">
               <Button variant="outline" className="rounded-xl" onPress={onClose}>
                 <Text className="text-sm font-medium text-civic-foreground">Cerrar</Text>
               </Button>
@@ -188,7 +190,7 @@ export function ProfileModal({ isOpen, onClose, user, onUserUpdated }: ProfileMo
             </View>
           </ScrollView>
         ) : (
-          <ScrollView className="px-5 pb-6" contentContainerClassName="gap-2">
+          <ScrollView className="px-4 pb-4" contentContainerClassName="gap-2">
             {myReports.map((report) => (
               <View key={report.id} className="flex-row items-center justify-between rounded-2xl border border-civic-secondary bg-civic-secondary/50 p-3">
                 <View className="flex-1 pr-2">

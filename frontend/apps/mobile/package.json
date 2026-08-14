@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@maplibre/maplibre-react-native": "^11.3.6",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@repo/api": "workspace:*",
     "@repo/shared-types": "workspace:*",
@@ -21,7 +22,6 @@
     "react-leaflet": "^5.0.0",
     "react-native": "0.86.0",
     "react-native-css-interop": "^0.2.6",
-    "react-native-maps": "1.27.2",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.2",

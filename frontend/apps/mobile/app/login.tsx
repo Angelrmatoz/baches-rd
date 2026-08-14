@@ -4,7 +4,6 @@ import { useRouter, Link } from 'expo-router';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -58,7 +57,7 @@ export default function LoginScreen() {
       <CivicBackground />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"

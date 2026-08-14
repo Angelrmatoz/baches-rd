@@ -95,6 +95,7 @@ export function NewReportModal({
       allowsMultipleSelection: true,
       selectionLimit: 3 - files.length,
       quality: 0.8,
+      base64: true,
     });
     if (result.canceled || result.assets.length === 0) return;
 
@@ -112,6 +113,7 @@ export function NewReportModal({
       }
       valid.push({
         uri: asset.uri,
+        base64: asset.base64,
         fileName: asset.fileName,
         mimeType: asset.mimeType,
         fileSize: asset.fileSize,
@@ -269,12 +271,19 @@ export function NewReportModal({
       });
 
       if (files.length > 0 && created.id) {
+        let uploaded = 0;
         for (let i = 0; i < files.length; i++) {
           try {
             await api.uploadImageToCloudinary(created.id, files[i], i === 0);
-          } catch {
-            // Continue uploading remaining photos
+            uploaded++;
+          } catch (e) {
+            console.warn('[NewReportModal] Error subiendo foto', i, e);
           }
+        }
+        if (uploaded < files.length) {
+          setError(
+            `El bache se publicó pero ${files.length - uploaded} foto(s) no se pudieron subir.`,
+          );
         }
       }
 
@@ -299,7 +308,7 @@ export function NewReportModal({
   };
 
   return (
-    <ModalShell visible={isOpen} onClose={onClose} cardClassName="max-h-[90%]">
+    <ModalShell visible={isOpen} onClose={onClose} cardStyle={{ maxHeight: '90%' }}>
       <View className="flex-row items-center justify-between border-b border-civic-secondary p-5 pb-4">
         <View className="flex-row items-center gap-2">
           <View className="h-9 w-9 items-center justify-center rounded-xl bg-[#00a8ff26]">
