@@ -214,10 +214,10 @@ export function ReportDetailModal({
             {hasMultiple && (
               <>
                 <View className="absolute inset-x-0 top-1/2 z-10 flex-row items-center justify-between px-3" style={{ marginTop: -16 }}>
-                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" onPress={handlePrevPhoto}>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" accessibilityLabel="Anterior foto" onPress={handlePrevPhoto}>
                     <Feather name="chevron-left" size={20} color="#ffffff" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" onPress={handleNextPhoto}>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" accessibilityLabel="Siguiente foto" onPress={handleNextPhoto}>
                     <Feather name="chevron-right" size={20} color="#ffffff" />
                   </Button>
                 </View>

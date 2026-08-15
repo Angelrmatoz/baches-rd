@@ -25,13 +25,13 @@ interface SuggestionItem {
   lon: string;
 }
 
-const SANITIZE_STREET = /\b(esquina|esq\.|esq|frente a|casi)\b/gi;
+const SANITIZE_STREET = /\b(esquina|esq\.?|frente a|casi)\b\.?/gi;
 
-function cleanQuery(raw: string): string {
+export function cleanQuery(raw: string): string {
   return raw.replace(SANITIZE_STREET, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function validateAsset(asset: ImagePicker.ImagePickerAsset): string | null {
+export function validateAsset(asset: ImagePicker.ImagePickerAsset): string | null {
   if (asset.mimeType && !asset.mimeType.startsWith('image/')) {
     return `El archivo "${asset.fileName || 'imagen'}" no es una foto válida. Solo se permiten imágenes.`;
   }
@@ -180,7 +180,7 @@ export function NewReportModal({
     }
   };
 
-  const handleSelectSuggestion = (item: SuggestionItem) => {
+  const handleSelectSuggestion = (item: SuggestionItem): { latitud: number; longitud: number } => {
     const foundLat = Number(parseFloat(item.lat).toFixed(6));
     const foundLon = Number(parseFloat(item.lon).toFixed(6));
     setLatitud(foundLat);
@@ -194,12 +194,14 @@ export function NewReportModal({
     setShowSuggestions(false);
     setGeocodingSuccess(`Ubicación seleccionada: (${foundLat}, ${foundLon})`);
     setTimeout(() => setGeocodingSuccess(null), 4000);
+
+    return { latitud: foundLat, longitud: foundLon };
   };
 
-  const handleGeocodeAddress = async (): Promise<boolean> => {
+  const handleGeocodeAddress = async (): Promise<{ latitud: number; longitud: number } | null> => {
     if (!direccionAprox.trim()) {
       setError('Por favor ingresa una dirección o referencia de la calle.');
-      return false;
+      return null;
     }
 
     const cleaned = cleanQuery(direccionAprox);
@@ -221,25 +223,26 @@ export function NewReportModal({
       if (res.ok) {
         const results: SuggestionItem[] = await res.json();
         if (results && results.length > 0) {
-          handleSelectSuggestion(results[0]);
-          return true;
+          return handleSelectSuggestion(results[0]);
         } else {
           setError(`La calle "${direccionAprox}" no se encontró en el mapa de Santo Domingo.`);
-          return false;
+          return null;
         }
       }
 
       // Fallback to Santo Domingo coordinates if no exact match or rate limited
-      setLatitud(18.4861);
-      setLongitud(-69.9312);
+      const fallback = { latitud: 18.4861, longitud: -69.9312 };
+      setLatitud(fallback.latitud);
+      setLongitud(fallback.longitud);
       setIsStreetVerified(true);
-      return true;
+      return fallback;
     } catch {
       // If CORS or 429 network error occurs, fallback gracefully to Santo Domingo coordinates
-      setLatitud(18.4861);
-      setLongitud(-69.9312);
+      const fallback = { latitud: 18.4861, longitud: -69.9312 };
+      setLatitud(fallback.latitud);
+      setLongitud(fallback.longitud);
       setIsStreetVerified(true);
-      return true;
+      return fallback;
     } finally {
       setGeocodingLoading(false);
     }
@@ -248,14 +251,19 @@ export function NewReportModal({
   const handleSubmit = async () => {
     setError(null);
 
+    let reportLatitud = latitud;
+    let reportLongitud = longitud;
+
     if (locationMode === 'street') {
       if (!direccionAprox.trim()) {
         setError('Por favor ingresa una dirección de calle.');
         return;
       }
       if (!isStreetVerified) {
-        const verified = await handleGeocodeAddress();
-        if (!verified) return;
+        const coords = await handleGeocodeAddress();
+        if (!coords) return;
+        reportLatitud = coords.latitud;
+        reportLongitud = coords.longitud;
       }
     }
 
@@ -263,8 +271,8 @@ export function NewReportModal({
 
     try {
       const created = await api.createReport({
-        latitud,
-        longitud,
+        latitud: reportLatitud,
+        longitud: reportLongitud,
         descripcion: descripcion.trim(),
         direccionAprox: direccionAprox.trim(),
         severidad,

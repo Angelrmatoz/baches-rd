@@ -245,7 +245,13 @@ export default function Dashboard() {
   };
 
   return (
-    <View className="flex-1 overflow-hidden bg-civic-background" onTouchEnd={closeAllMenus}>
+    <View
+      className="flex-1 overflow-hidden bg-civic-background"
+      onTouchEnd={() => {
+        setNotificationsOpen(false);
+        setAccountOpen(false);
+      }}
+    >
       {(notificationsOpen || accountOpen || panelOpen) && (
         <Pressable
           className="absolute inset-0 z-10"
