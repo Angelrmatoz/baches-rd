@@ -1,0 +1,29 @@
+# Baches RD Mobile — E2E: Login
+# Requiere: app instalada, backend corriendo en 10.0.2.2:8080 (Android) o localhost:8080.
+# Ejecutar: maestro test .maestro/01-login.yaml
+
+appId: com.angelrmatoz.mobile
+---
+- launchApp:
+    clearState: true
+
+# Dashboard (mapa público) sin sesión; navegar a login
+- extendedWaitUntil:
+    visible: "Baches RD"
+    timeout: 30000
+- assertVisible: "Iniciar sesión"
+- tapOn: "Iniciar sesión"
+
+# Login con el admin seed
+- assertVisible: "Correo electrónico"
+- tapOn:
+    id: "login-email"
+- inputText: "admin@bachesrd.com"
+- tapOn:
+    id: "login-password"
+- inputText: "admin123"
+- tapOn: "Entrar al mapa"
+
+# Dashboard con mapa y panel
+- assertVisible: "Reportar un bache"
+- assertVisible: "Baches RD"

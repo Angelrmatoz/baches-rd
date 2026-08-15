@@ -43,8 +43,17 @@ export function ReportDetailModal({
     if (report) {
       setPhotos(report.fotos || []);
       setCurrentPhotoIndex(0);
+      if (isOpen && report.id) {
+        api.getReportById(report.id)
+          .then((fresh) => {
+            if (fresh?.fotos) {
+              setPhotos(fresh.fotos);
+            }
+          })
+          .catch(() => {});
+      }
     }
-  }, [report]);
+  }, [report, isOpen]);
 
   if (!isOpen || !report) return null;
 
@@ -106,11 +115,13 @@ export function ReportDetailModal({
       mediaTypes: ['images'],
       allowsMultipleSelection: false,
       quality: 0.8,
+      base64: true,
     });
     if (result.canceled || result.assets.length === 0) return;
     const asset = result.assets[0];
     const picked: PickedImage = {
       uri: asset.uri,
+      base64: asset.base64,
       fileName: asset.fileName,
       mimeType: asset.mimeType,
       fileSize: asset.fileSize,
@@ -171,11 +182,11 @@ export function ReportDetailModal({
     <>
       <ModalShell visible={isOpen} onClose={onClose} cardClassName="p-0" cardStyle={{ maxHeight: '90%' }}>
         {fotos.length > 0 ? (
-          <View className="h-60 w-full overflow-hidden bg-black/90">
+          <View className="h-60 w-full overflow-hidden rounded-t-4xl bg-black/90">
             {currentPhoto ? (
               <Image
                 source={{ uri: currentPhoto.cloudinaryUrl }}
-                className="h-full w-full"
+                className="h-full w-full rounded-t-4xl"
                 resizeMode="cover"
                 accessibilityLabel={`Foto ${currentPhotoIndex + 1} del bache`}
               />
@@ -203,10 +214,10 @@ export function ReportDetailModal({
             {hasMultiple && (
               <>
                 <View className="absolute inset-x-0 top-1/2 z-10 flex-row items-center justify-between px-3" style={{ marginTop: -16 }}>
-                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" onPress={handlePrevPhoto}>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" accessibilityLabel="Anterior foto" onPress={handlePrevPhoto}>
                     <Feather name="chevron-left" size={20} color="#ffffff" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" onPress={handleNextPhoto}>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-black/50" accessibilityLabel="Siguiente foto" onPress={handleNextPhoto}>
                     <Feather name="chevron-right" size={20} color="#ffffff" />
                   </Button>
                 </View>

@@ -4,7 +4,6 @@ import { useRouter, Link } from 'expo-router';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -58,7 +57,7 @@ export default function LoginScreen() {
       <CivicBackground />
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <ScrollView
           className="flex-1"
@@ -158,6 +157,7 @@ export default function LoginScreen() {
                       autoCapitalize="none"
                       keyboardType="email-address"
                       autoComplete="email"
+                      testID="login-email"
                       className="h-12 flex-1 pr-3 text-sm text-civic-foreground"
                     />
                   </View>
@@ -175,6 +175,7 @@ export default function LoginScreen() {
                       placeholderTextColor="#a8b2c7"
                       secureTextEntry={!showPassword}
                       autoComplete="current-password"
+                      testID="login-password"
                       className="h-12 flex-1 pr-3 text-sm text-civic-foreground"
                     />
                     <Pressable

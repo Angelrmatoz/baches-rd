@@ -20,12 +20,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.angelrmatoz.mobile",
-      "config": {
-        "googleMaps": {
-          "apiKey": "TU_API_KEY_AQUI"
-        }
-      }
+      "package": "com.angelrmatoz.mobile"
     },
     "web": {
       "backgroundColor": "#0e1524",
@@ -34,7 +29,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-status-bar"
+      "expo-status-bar",
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true

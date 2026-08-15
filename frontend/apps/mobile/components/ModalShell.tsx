@@ -34,7 +34,7 @@ export function ModalShell({ visible, onClose, children, cardClassName = '', car
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Cerrar modal" />
         <Animated.View style={[{ width: '100%', maxWidth: 500, transform: [{ scale }] }, cardStyle]}>
           <View
-            className={`rounded-4xl border border-[#a8b2c7]/20 bg-[#162037] ${cardClassName}`}
+            className={`overflow-hidden rounded-4xl border border-[#a8b2c7]/20 bg-[#162037] ${cardClassName}`}
             style={Platform.select({
               web: {
                 boxShadow: '0 16px 28px rgba(11, 30, 77, 0.45)',
