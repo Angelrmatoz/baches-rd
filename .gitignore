@@ -1089,3 +1089,12 @@ secring.*
 .ai
 .freebuff
 .playwright-mcp
+
+# --- Excepciones para frontend/apps/mobile ---
+# Los templates genéricos de arriba (lib/ de Lazarus y [_@]* de ModelSim)
+# ignoran código fuente real de la app mobile (lib/, __tests__/, _layout.tsx).
+# Sin estas excepciones, Jest en CI no encuentra tests y pasa con --passWithNoTests.
+
+!frontend/apps/mobile/lib/
+!frontend/apps/mobile/**/__tests__/
+!frontend/apps/mobile/app/_layout.tsx

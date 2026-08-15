@@ -44,7 +44,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "test:ci": "jest --ci --passWithNoTests --coverage=false --maxWorkers=2",
+    "test:ci": "jest --ci --coverage=false --maxWorkers=2",
     "test:e2e": "maestro test .maestro"
   },
   "jest": {
